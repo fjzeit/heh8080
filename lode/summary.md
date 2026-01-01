@@ -50,10 +50,15 @@ Phases 1-6 complete plus Z80 support. Emulator runs LOLOS on desktop with Z80 as
   - DelayDevice (port 28)
   - HardwareControlDevice (port 160)
   - FileDiskImageProvider for desktop
-- **Phase 5**: FJM-3A terminal emulator with CRT effects:
+- **Phase 5**: FJM-3A terminal emulator with authentic 1970s CRT effects:
   - Heh8080.Terminal project (TerminalBuffer, Adm3aParser, Adm3aTerminal)
   - RetroTerminalControl with SKSL shader: barrel distortion, bloom, scanlines, vignette
-  - 4:3 aspect ratio, light gray housing with 3D shading, anti-aliased edges
+  - 4:3 aspect ratio with 3-layer housing design:
+    - Outer housing: light gray (#B8B8B0) with 3D shading, 16px rounded corners
+    - Inner bezel: medium gray (#505048) with inset shading, 44px rounded corners
+    - CRT glass: superellipse boundary (n=7) for curved edges like real CRT tube
+  - Shader returns transparent pixels outside curved boundary (inner bezel shows through)
+  - 120px horizontal padding keeps text away from curved edges
   - ADM-3A compatible input: printable ASCII + control codes only
   - Supports ESC sequences for WordStar compatibility (ESC T, ESC Y)
   - 18 parser unit tests

@@ -105,46 +105,84 @@ public class Adm3aTerminal : IConsoleDevice
 
 ## CRT Visual Effects
 
-RetroTerminalControl uses a SkiaSharp SKSL shader for authentic CRT effects:
+RetroTerminalControl uses a SkiaSharp SKSL shader for authentic 1970s CRT effects.
 
 ### Screen Geometry
-| Setting | Value |
-|---------|-------|
-| Aspect Ratio | 4:3 (enforced) |
-| Horizontal Padding | 80px (keeps text from curved edges) |
-| Bezel Size | 48px |
-| Corner Radius | 40px |
+| Setting | Value | Purpose |
+|---------|-------|---------|
+| Aspect Ratio | 4:3 | Authentic CRT proportions |
+| Horizontal Padding | 120px | Keeps text away from curved edges |
+| Vertical Padding | 80px | Calculated from 4:3 ratio |
+| Outer Bezel Size | 48px | Light gray housing frame |
+| Inner Bezel Size | 12px | Dark frame around CRT glass |
+| Housing Corner Radius | 16px | Rounded outer housing |
+| Inner Bezel Corner Radius | 44px | Rounded inner frame |
+| Screen Corner Radius | 40px | CRT glass rounding |
+
+### CRT Glass Boundary
+The screen uses a **superellipse** formula for curved edges like a real CRT tube:
+```
+curvedDist = pow(pow(x, n) + pow(y, n), 1/n)
+```
+Where `n=7` gives subtle edge curvature (higher = more rectangular, 2 = ellipse).
+
+Pixels outside the curved boundary return transparent, allowing the inner bezel to show through.
 
 ### Shader Effects
 | Effect | Implementation |
 |--------|---------------|
 | Background | #0A140A (near-black green) |
-| Foreground | #33FF33 (bright green) |
-| Barrel Distortion | `1.0 + 0.3*r² + 0.2*r⁴` - curves text at edges |
+| Foreground | #33FF33 (bright green P1 phosphor) |
+| Barrel Distortion | `1.0 + 0.3*r² + 0.2*r⁴` - curves content at edges |
 | Bloom | 8-tap blur adds phosphor glow |
 | Scanlines | `fract(y/3) >= 0.5` - 30% darker bands |
 | Vignette | `0.5 + 0.5 * (1 - 1.4r²)` - center-to-edge darkening |
-| Edge Shadow | 40px smoothstep - housing overlap effect |
-| Anti-aliasing | 2px blend at screen boundary |
+| Edge Shadow | Smoothstep from 0.7 to 1.0 - darkens near curved boundary |
+| Transparency | Superellipse boundary - pixels outside are transparent |
 
-### Housing Design
-Light gray bezel (#B8B8B0) with 3D shading:
-- Top/left: subtle highlight
-- Bottom/right: subtle shadow
-- Screen appears recessed behind housing
-- FJM-3A logo button in top-left corner (click opens ConfigDialog)
+### Housing Design (3-Layer)
+
+```
+┌─────────────────────────────────────┐  ← Outer housing (#B8B8B0)
+│  ┌───────────────────────────────┐  │     16px corner radius
+│  │  ┌─────────────────────────┐  │  │  ← Inner bezel (#505048)
+│  │  │                         │  │  │     44px corner radius, 3D shading
+│  │  │      CRT Glass          │  │  │  ← Screen content
+│  │  │   (curved boundary)     │  │  │     Superellipse n=7
+│  │  │                         │  │  │
+│  │  └─────────────────────────┘  │  │
+│  └───────────────────────────────┘  │
+└─────────────────────────────────────┘
+```
+
+**Outer Housing** (#B8B8B0 light gray):
+- Top/left: subtle highlight gradient
+- Bottom/right: subtle shadow gradient
+- 16px rounded corners
+
+**Inner Bezel** (#505048 medium gray):
+- Top/left: darker shadow (inset depth)
+- Bottom/right: lighter highlight
+- 44px rounded corners
+- Creates recessed frame effect
+
+**FJM-3A Logo**: Button in top-left corner opens ConfigDialog
 
 ### Rendering Pipeline
-1. Terminal content rendered centered to offscreen `SKSurface`
-2. CRT shader applies distortion, bloom, scanlines, vignette, edge shadow
-3. Anti-aliased blend at curved screen boundary
-4. Result composited with bezel frame
+1. Draw outer housing with rounded corners and 3D shading
+2. Draw inner bezel with rounded corners and inset shading
+3. Render terminal content centered to offscreen `SKSurface`
+4. Apply CRT shader (distortion, bloom, scanlines, vignette, edge shadow)
+5. Shader returns transparent for pixels outside superellipse boundary
+6. Result composited - inner bezel visible at curved corners
 
 ### SKSL Shader Notes
 - Use `sample(shader, coords)` not `shader.eval(coords)`
 - `smoothstep` not available - use manual: `t*t*(3-2t)`
+- `pow()` works for superellipse calculation
 - Child shaders declared as `uniform shader name`
 - Coordinates in pixels, not normalized
+- Return `half4(0,0,0,0)` for transparent pixels outside boundary
 
 ## Keyboard Mapping
 

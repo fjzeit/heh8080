@@ -25,8 +25,12 @@ public class RetroTerminalControl : Control
 
     // CRT bezel settings - FJM-3A style
     private const double BezelSize = 48;
+    private const double InnerBezelSize = 12;  // Dark frame around screen
     private const double ScreenCornerRadius = 40;
-    private const double ScreenPaddingHorizontal = 80;  // Keep content away from curved edges
+    private const float HousingCornerRadius = 16f;  // Rounded corners on outer housing
+    private const float InnerBezelCornerRadius = 44f;  // Rounded corners on inner dark bezel
+    private const double ScreenPaddingHorizontal = 120;  // Keep content away from curved edges
+    private const double ScreenPaddingVertical = 80;     // Vertical padding from curved edges
 
     // Logo button area
     private const double LogoWidth = 80;
@@ -48,7 +52,9 @@ public class RetroTerminalControl : Control
     private static readonly Color BezelColorLight = Color.FromRgb(0xB8, 0xB8, 0xB0);  // Light gray
     private static readonly Color BezelColorDark = Color.FromRgb(0x90, 0x90, 0x88);   // Shadow
     private static readonly Color BezelColorHighlight = Color.FromRgb(0xD0, 0xD0, 0xC8); // Highlight
-    private static readonly Color ScreenBezelColor = Color.FromRgb(0x20, 0x20, 0x20);  // Dark inner bezel
+    private static readonly Color ScreenBezelColor = Color.FromRgb(0x50, 0x50, 0x48);  // Inner bezel base
+    private static readonly Color ScreenBezelShadow = Color.FromRgb(0x30, 0x30, 0x28);  // Inner bezel shadow
+    private static readonly Color ScreenBezelHighlight = Color.FromRgb(0x68, 0x68, 0x60);  // Inner bezel highlight
 
     private SKTypeface? _typeface;
 
@@ -166,10 +172,10 @@ public class RetroTerminalControl : Control
         var screenHeight = screenWidth * 3.0 / 4.0;
         var screenRect = new Rect(BezelSize, BezelSize, screenWidth, screenHeight);
 
-        // Draw FJM-3A style housing with shading
+        // Draw FJM-3A style housing with shading (rounded corners)
         // Base color
         var baseBrush = new SolidColorBrush(BezelColorLight);
-        context.FillRectangle(baseBrush, bounds);
+        context.FillRectangle(baseBrush, bounds, HousingCornerRadius);
 
         // Top edge highlight (outer surface catches light)
         var topHighlight = new LinearGradientBrush
@@ -182,7 +188,7 @@ public class RetroTerminalControl : Control
                 new GradientStop(Colors.Transparent, 1)
             }
         };
-        context.FillRectangle(topHighlight, bounds);
+        context.FillRectangle(topHighlight, bounds, HousingCornerRadius);
 
         // Bottom shadow (outer surface)
         var bottomShadow = new LinearGradientBrush
@@ -195,7 +201,7 @@ public class RetroTerminalControl : Control
                 new GradientStop(BezelColorDark, 1)
             }
         };
-        context.FillRectangle(bottomShadow, bounds);
+        context.FillRectangle(bottomShadow, bounds, HousingCornerRadius);
 
         // Left edge highlight (outer surface)
         var leftHighlight = new LinearGradientBrush
@@ -208,7 +214,7 @@ public class RetroTerminalControl : Control
                 new GradientStop(Colors.Transparent, 1)
             }
         };
-        context.FillRectangle(leftHighlight, bounds);
+        context.FillRectangle(leftHighlight, bounds, HousingCornerRadius);
 
         // Right shadow (outer surface)
         var rightShadow = new LinearGradientBrush
@@ -221,7 +227,70 @@ public class RetroTerminalControl : Control
                 new GradientStop(Color.FromArgb(40, 0, 0, 0), 1)
             }
         };
-        context.FillRectangle(rightShadow, bounds);
+        context.FillRectangle(rightShadow, bounds, HousingCornerRadius);
+
+        // Draw inner bezel (frame around screen) with depth shading
+        var innerBezelRect = new Rect(
+            BezelSize - InnerBezelSize,
+            BezelSize - InnerBezelSize,
+            screenWidth + (InnerBezelSize * 2),
+            screenHeight + (InnerBezelSize * 2));
+
+        // Base color
+        var innerBezelBrush = new SolidColorBrush(ScreenBezelColor);
+        context.FillRectangle(innerBezelBrush, innerBezelRect, InnerBezelCornerRadius);
+
+        // Top shadow (inset, so top is darker)
+        var innerTopShadow = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(0, 0.3, RelativeUnit.Relative),
+            GradientStops =
+            {
+                new GradientStop(ScreenBezelShadow, 0),
+                new GradientStop(Colors.Transparent, 1)
+            }
+        };
+        context.FillRectangle(innerTopShadow, innerBezelRect, InnerBezelCornerRadius);
+
+        // Left shadow (inset)
+        var innerLeftShadow = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(0.15, 0, RelativeUnit.Relative),
+            GradientStops =
+            {
+                new GradientStop(Color.FromArgb(80, 0, 0, 0), 0),
+                new GradientStop(Colors.Transparent, 1)
+            }
+        };
+        context.FillRectangle(innerLeftShadow, innerBezelRect, InnerBezelCornerRadius);
+
+        // Bottom highlight (inset, so bottom catches light)
+        var innerBottomHighlight = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0.85, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
+            GradientStops =
+            {
+                new GradientStop(Colors.Transparent, 0),
+                new GradientStop(ScreenBezelHighlight, 1)
+            }
+        };
+        context.FillRectangle(innerBottomHighlight, innerBezelRect, InnerBezelCornerRadius);
+
+        // Right highlight (inset)
+        var innerRightHighlight = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0.9, 0, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(1, 0, RelativeUnit.Relative),
+            GradientStops =
+            {
+                new GradientStop(Colors.Transparent, 0),
+                new GradientStop(Color.FromArgb(40, 255, 255, 255), 1)
+            }
+        };
+        context.FillRectangle(innerRightHighlight, innerBezelRect, InnerBezelCornerRadius);
 
         // Use custom draw operation for CRT effect (includes edge shadow in shader)
         var operation = new TerminalDrawOperation(
@@ -363,24 +432,25 @@ half4 main(float2 fragCoord) {
     float distortion = 1.0 + 0.3 * r2 + 0.2 * r2 * r2;
     float2 distortedUv = centered * distortion + 0.5;
 
-    // Anti-aliased edge - blend between screen and housing at boundary
-    half4 housingColor = half4(0.72, 0.72, 0.69, 1.0);  // Match BezelColorLight
+    // Check if outside the curved CRT boundary (in distorted space)
+    // Use superellipse for curved edges: pow(x^n + y^n, 1/n)
+    float2 fromCenter = abs(distortedUv - 0.5) * 2.0;
+    float n = 7.0;  // Controls curvature: 2=ellipse, higher=more rectangular
+    float curvedDist = pow(pow(fromCenter.x, n) + pow(fromCenter.y, n), 1.0/n);
 
-    // Calculate signed distance from valid [0,1] region (negative = inside)
-    float edgeDistX = max(-distortedUv.x, distortedUv.x - 1.0);
-    float edgeDistY = max(-distortedUv.y, distortedUv.y - 1.0);
-    float boundsDist = max(edgeDistX, edgeDistY);
-
-    // If clearly outside, return housing color
-    if (boundsDist > 0.01) {
-        return housingColor;
+    // Outside curved boundary - return transparent
+    if (curvedDist > 1.0) {
+        return half4(0.0, 0.0, 0.0, 0.0);
     }
+
+    // Smooth edge for anti-aliasing
+    float edgeAA = 1.0 - clamp((curvedDist - 0.98) / 0.02, 0.0, 1.0);
 
     // Sample main color
     float2 texel = 1.0 / resolution;
     half4 color = sample(content, distortedUv * resolution);
 
-    // Simple 8-tap bloom (no loops)
+    // Simple 8-tap bloom
     half4 bloom = sample(content, (distortedUv + float2(-2.0, 0.0) * texel) * resolution);
     bloom += sample(content, (distortedUv + float2(2.0, 0.0) * texel) * resolution);
     bloom += sample(content, (distortedUv + float2(0.0, -2.0) * texel) * resolution);
@@ -400,26 +470,18 @@ half4 main(float2 fragCoord) {
     // Phosphor tint
     color.g *= 1.1;
 
-    // Vignette applies to whole screen including border
+    // Vignette
     float vig = 1.0 - dot(centered * 1.4, centered * 1.4);
     vig = clamp(vig, 0.0, 1.0);
     color.rgb *= 0.5 + 0.5 * vig;
 
-    // Edge shadow - housing overlaps the screen edges
-    float edgeDist = min(min(distortedUv.x, 1.0 - distortedUv.x),
-                         min(distortedUv.y, 1.0 - distortedUv.y));
-    float shadowWidth = 40.0 / min(resolution.x, resolution.y);
-    float st = clamp(edgeDist / shadowWidth, 0.0, 1.0);
-    float edgeShadow = st * st * (3.0 - 2.0 * st);
-    float tlBias = 1.0 - 0.3 * (distortedUv.x + distortedUv.y);
-    color.rgb *= 0.4 + 0.6 * edgeShadow * tlBias;
+    // Edge shadow
+    float t = clamp((curvedDist - 0.7) / 0.3, 0.0, 1.0);
+    float edgeShadow = 1.0 - t * t * (3.0 - 2.0 * t);
+    color.rgb *= 0.5 + 0.5 * edgeShadow;
 
-    // Anti-alias the edge - smooth blend near boundary
-    // boundsDist is negative inside, 0 at edge, positive outside
-    // Blend over ~2 pixels for smooth edge
-    float aaWidth = 2.0 / min(resolution.x, resolution.y);
-    float edgeBlend = clamp(boundsDist / aaWidth + 0.5, 0.0, 1.0);
-    color = color * (1.0 - edgeBlend) + housingColor * edgeBlend;
+    // Apply edge anti-aliasing
+    color.a = edgeAA;
 
     return color;
 }
@@ -484,7 +546,6 @@ half4 main(float2 fragCoord) {
             }
         }
 
-        // Shader handles smooth edge blending, no hard clip needed
         if (_crtEffect != null)
         {
             using var imageShader = image.ToShader();
