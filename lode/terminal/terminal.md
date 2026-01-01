@@ -184,6 +184,34 @@ Pixels outside the curved boundary return transparent, allowing the inner bezel 
 - Coordinates in pixels, not normalized
 - Return `half4(0,0,0,0)` for transparent pixels outside boundary
 
+### Future Enhancement: CRT Refresh Roll
+
+Real CRT monitors display a visible "refresh line" moving down the screen as the electron beam scans. This effect was prototyped but deferred for future implementation.
+
+**Implementation approach:**
+1. Add `DispatcherTimer` (~30fps) to trigger redraws
+2. Pass elapsed time to shader via `uniform float time`
+3. In shader, calculate roll position: `float rollY = fract(time * speed)`
+4. Apply brightness boost near roll line:
+```glsl
+// Sharp horizontal line moving down
+float rollPos = fract(time * 0.5);  // speed: 0.5 = 2 seconds per cycle
+float distToRoll = abs(uv.y - rollPos);
+float rollBrightness = distToRoll < 0.01 ? 1.2 : 1.0;  // thin bright line
+color.rgb *= rollBrightness;
+```
+
+**Parameters to tune:**
+- `speed`: How fast the line moves (0.5 = 2 sec cycle, 1.0 = 1 sec)
+- `lineWidth`: Thickness of the bright band (0.01 = very thin)
+- `brightness`: Intensity boost (1.1-1.3 range)
+
+**Challenges encountered:**
+- Effect was subtle and hard to see against scanlines
+- Needed to be a sharp line, not a sine wave
+- Direction should be top-to-bottom (subtract time from y, not add)
+- May need higher contrast or different blending approach
+
 ## Keyboard Mapping
 
 Input is filtered to ADM-3A compatible characters only:
