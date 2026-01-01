@@ -24,12 +24,12 @@ src/
   Heh8080.Desktop/   # NativeAOT entry point
   Heh8080.Browser/   # WASM entry point
 tests/
-  Heh8080.Tests/     # Unit tests
+  Heh8080.Tests/     # Unit tests (41 CPU tests)
   cpu_tests/         # External test suite integration
 ```
 
 ## Current Status
-Phase 1 complete. Solution skeleton builds successfully. Ready for Phase 2: CPU Implementation.
+Phase 2 complete. CPU implementation with all 256 opcodes, memory with banking, I/O bus, and test harness. 45 unit tests passing.
 
 ## Build Notes
 - Core/Devices/App multitarget `net10.0;net9.0` for Browser compatibility
