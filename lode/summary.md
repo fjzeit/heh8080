@@ -19,20 +19,44 @@ Cross-platform Intel 8080 CPU emulator designed to run LOLOS (a CP/M 2.2 compati
 ```
 src/
   Heh8080.Core/      # CPU, memory, I/O bus
-  Heh8080.Devices/   # FDC, console, MMU, network
-  Heh8080.App/       # Avalonia UI (shared)
-  Heh8080.Desktop/   # NativeAOT entry point
-  Heh8080.Browser/   # WASM entry point
+  Heh8080.Devices/   # FDC, console, MMU, printer, auxiliary, timer
+  Heh8080.Desktop/   # Desktop app with Avalonia UI (NativeAOT)
+  Heh8080.Browser/   # WASM entry point (stub, Phase 7)
 tests/
-  Heh8080.Tests/     # Unit tests (41 CPU tests)
-  cpu_tests/         # External test suite integration
+  Heh8080.Tests/     # Unit tests (45 total)
+  cpu_tests/         # External test suites (TST8080, 8080PRE, CPUTEST, 8080EXM)
 ```
 
 ## Current Status
-Phase 2 complete. CPU implementation with all 256 opcodes, memory with banking, I/O bus, and test harness. 45 unit tests passing.
+Phases 1-4 complete. Ready for Phase 5: RetroTerminal Control.
+
+### Completed
+- **Phase 1**: Solution skeleton with all projects
+- **Phase 2**: CPU implementation (all 256 opcodes, memory, I/O bus)
+- **Phase 3**: CPU validation - all tests pass:
+  - TST8080.COM: "CPU IS OPERATIONAL"
+  - 8080PRE.COM: "8080 Preliminary tests complete"
+  - CPUTEST.COM: "CPU TESTS OK"
+  - 8080EXM.COM: Skipped (hours to run)
+- **Phase 4**: Device layer complete:
+  - ConsolePortHandler (ports 0-1)
+  - PrinterPortHandler (ports 2-3)
+  - AuxiliaryPortHandler (ports 4-5)
+  - FloppyDiskController (ports 10-17)
+  - MemoryManagementUnit (ports 20-23)
+  - TimerDevice (port 27)
+  - DelayDevice (port 28)
+  - HardwareControlDevice (port 160)
+  - FileDiskImageProvider for desktop
+
+### Next
+- **Phase 5**: RetroTerminal control
+- **Phase 6**: Avalonia application
+- **Phase 7**: Platform integration (Browser needs shared UI library)
+- **Phase 8**: LOLOS integration testing
 
 ## Build Notes
-- Core/Devices/App multitarget `net10.0;net9.0` for Browser compatibility
-- Desktop targets `net10.0` with NativeAOT enabled
-- Browser targets `net9.0-browser` (Avalonia WASM limitation)
+- All projects target `net10.0`
+- Desktop uses NativeAOT - all code must be AoT-compatible
+- Browser stub for Phase 7 (will need multi-targeted Core/Devices)
 - Central package management via `Directory.Packages.props`

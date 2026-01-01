@@ -13,6 +13,7 @@
 
 ## Devices
 - [devices/io-ports.md](devices/io-ports.md) - I/O port specification
+- [devices/devices.md](devices/devices.md) - Device layer implementation
 
 ## External
 - `tests/cpu_tests/README.md` - Third-party CPU test integration

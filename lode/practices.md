@@ -28,7 +28,14 @@
 ## Cross-Platform
 - Shared core library (Heh8080.Core) for all platforms
 - Platform-specific storage via IDiskImageProvider abstraction
-- Single Avalonia UI codebase for desktop and web
+- Desktop has full UI; Browser is a separate implementation (Phase 7)
+
+## NativeAOT
+All code must be AoT-compatible:
+- No reflection-based patterns (use source generators)
+- Avoid APIs marked with `RequiresUnreferencedCode`
+- Use compiled bindings in Avalonia (`AvaloniaUseCompiledBindingsByDefault`)
+- Test with `dotnet publish -c Release` to catch trimming issues early
 
 ## UI
 - Retro CRT terminal on all platforms (not just web)

@@ -9,7 +9,5 @@
     <PackageReference Include="Avalonia.Browser" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Heh8080.App\Heh8080.App.csproj" />
-  </ItemGroup>
+  <!-- Phase 7: Add references to multi-targeted Core/Devices and shared UI library -->
 </Project>

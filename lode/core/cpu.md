@@ -88,9 +88,18 @@ while (!cpu.Halted)
 }
 ```
 
+## Validation Status
+
+All standard 8080 CPU test suites pass:
+- **TST8080.COM**: "CPU IS OPERATIONAL"
+- **8080PRE.COM**: "8080 Preliminary tests complete"
+- **CPUTEST.COM**: "CPU TESTS OK" (Supersoft Diagnostics II)
+- **8080EXM.COM**: Skipped by default (takes hours)
+
 ## Related Files
 
 - `src/Heh8080.Core/Memory.cs` - 64KB memory with banking
 - `src/Heh8080.Core/IoBus.cs` - I/O port dispatch
 - `src/Heh8080.Core/CpmTestHarness.cs` - Test runner
 - `tests/Heh8080.Tests/Cpu8080Tests.cs` - 41 unit tests
+- `tests/Heh8080.Tests/CpuTestSuiteTests.cs` - Integration tests
