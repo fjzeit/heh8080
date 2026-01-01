@@ -22,5 +22,5 @@
 ## External
 - `tests/cpu_tests/README.md` - Third-party CPU test integration
 
-## Domains (create as implementation progresses)
-- `ui/` - Avalonia and retro terminal
+## UI
+- [ui/desktop-app.md](ui/desktop-app.md) - Desktop application architecture

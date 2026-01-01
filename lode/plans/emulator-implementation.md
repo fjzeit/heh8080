@@ -50,25 +50,18 @@ heh8080/
 ├── src/
 │   ├── Heh8080.Core/           # CPU, memory, I/O bus (.NET 10 library)
 │   ├── Heh8080.Devices/        # FDC, console, printer, MMU, network
-│   ├── Heh8080.App/            # Avalonia UI (desktop + WASM)
+│   ├── Heh8080.Terminal/       # FJM-3A terminal emulator
+│   ├── Heh8080.Desktop/        # Desktop app with Avalonia UI (NativeAOT)
 │   │   ├── Controls/
-│   │   │   └── RetroTerminal.cs  # Custom control with CRT effects
-│   │   ├── Views/
-│   │   │   └── MainWindow.axaml
-│   │   └── ViewModels/
-│   ├── Heh8080.Desktop/        # Desktop entry point (NativeAOT)
-│   └── Heh8080.Browser/        # WASM entry point
+│   │   │   └── RetroTerminalControl.cs  # CRT shader effects
+│   │   └── Views/
+│   └── Heh8080.Browser/        # WASM entry point (Phase 7)
 ├── tests/
-│   ├── Heh8080.Tests/          # Unit tests
+│   ├── Heh8080.Tests/          # Unit tests (62 total)
 │   └── cpu_tests/              # Standard 8080 test COM files
-│       ├── TST8080.COM
-│       ├── 8080PRE.COM
-│       ├── CPUTEST.COM
-│       └── 8080EXM.COM
 ├── assets/
 │   └── disks/                  # Bundled LOLOS disk image
-└── lode/
-    └── plans/                  # This plan
+└── lode/                       # Project knowledge base
 ```
 
 ```
@@ -141,12 +134,10 @@ heh8080/
    - WASM build for browser
 
 3. **Retro Terminal** (ALL PLATFORMS):
-   - Custom Avalonia control using SkiaSharp rendering
-   - Green phosphor color scheme (#33FF33 on #0A1A0A)
-   - CRT barrel distortion effect
-   - Horizontal scanlines overlay
-   - Phosphor bloom/glow effect
-   - Optional: flicker simulation, screen curvature
+   - FJM-3A terminal emulator (ADM-3A compatible escape sequences)
+   - SKSL shader for CRT effects: barrel distortion, bloom, scanlines, vignette
+   - 4:3 aspect ratio with light gray housing, anti-aliased edges
+   - Green phosphor color scheme (#33FF33 on #0A140A)
 
 4. **CPU**: Switch-based opcode dispatch
    - 256 opcodes, all 8080 flags (S, Z, AC, P, CY)
@@ -192,30 +183,40 @@ heh8080/
 5. Implement printer/auxiliary stubs
 6. Implement IDiskImageProvider (file-based + IndexedDB)
 
-### Phase 5: Retro Terminal Control
-1. Create RetroTerminal custom control using SkiaSharp
-   - Character buffer with fixed-width font
-   - Green phosphor color palette
-   - Render to SKCanvas
-2. Add CRT effects layer:
-   - Barrel distortion shader
-   - Scanline overlay
-   - Bloom/glow post-processing
-3. Keyboard input handling (focus, key events)
-4. Performance optimization (dirty region tracking)
+### Phase 5: Retro Terminal Control ✓
+1. ✓ Created Heh8080.Terminal project with FJM-3A emulator
+   - TerminalBuffer (80×24 character grid)
+   - Adm3aParser (escape sequence state machine)
+   - Adm3aTerminal (implements IConsoleDevice)
+2. ✓ Created RetroTerminalControl with SKSL shader:
+   - Green phosphor (#33FF33 on #0A140A)
+   - Barrel distortion (`1.0 + 0.3*r² + 0.2*r⁴`)
+   - 8-tap bloom, scanlines, vignette
+   - Edge shadow (housing overlap effect)
+   - Anti-aliased screen boundary
+3. ✓ 4:3 aspect ratio with light gray housing
+4. ✓ Keyboard input handling (ADM-3A cursor codes)
+5. ✓ 18 parser unit tests
 
-### Phase 6: Avalonia Application
-1. Create MainWindow with RetroTerminal
-2. Add toolbar/menu for disk operations
-3. Wire up ViewModel to emulator
-4. Implement disk image loading UI
-5. Add settings for CRT effects intensity
+### Phase 6: Avalonia Application ✓
+1. ✓ Created Emulator class (background thread CPU execution, max speed)
+2. ✓ MainViewModel wires all devices to I/O bus:
+   - ConsolePortHandler → Adm3aTerminal
+   - FloppyDiskController → FileDiskImageProvider
+   - MemoryManagementUnit, TimerDevice, DelayDevice, HardwareControlDevice
+   - PrinterPortHandler (NullPrinterDevice), AuxiliaryPortHandler (null)
+3. ✓ FJM-3A logo button in terminal bezel opens ConfigDialog
+4. ✓ ConfigDialog: disk mount/unmount (A:-D:), reset, file picker
+5. ✓ Auto-boot: extracts bundled lolos.dsk, mounts to A:, boots
+6. ✓ 10ms timer interrupt via System.Threading.Timer → Cpu.Interrupt(7)
+7. ✓ Proper lifecycle cleanup on shutdown
+8. ✓ Idle detection in ConsolePortHandler (Thread.Sleep after 100 polls)
+9. ✓ **Verified**: MBASIC 5.29 (24KB, multi-extent) loads and runs correctly
 
 ### Phase 7: Platform Integration
-1. Desktop: File dialogs, NativeAOT publishing
-2. Browser: IndexedDB disk storage via JS interop
-3. Bundle LOLOS disk image as embedded resource
-4. Test on all platforms
+1. Browser: IndexedDB disk storage via JS interop
+2. Desktop NativeAOT publishing and testing
+3. Test on all desktop platforms (Win/Mac/Linux)
 
 ### Phase 8: Integration Testing
 1. Boot LOLOS successfully
@@ -237,10 +238,15 @@ heh8080/
 - `src/Heh8080.Devices/IConsoleDevice.cs` - Console interface
 - `src/Heh8080.Devices/IDiskImageProvider.cs` - Disk storage abstraction
 
+### Terminal
+- `src/Heh8080.Terminal/TerminalBuffer.cs` - 80×24 character grid
+- `src/Heh8080.Terminal/Adm3aParser.cs` - Escape sequence parser
+- `src/Heh8080.Terminal/Adm3aTerminal.cs` - IConsoleDevice implementation
+
 ### Avalonia App
-- `src/Heh8080.App/Controls/RetroTerminal.cs` - CRT terminal control
-- `src/Heh8080.App/Views/MainWindow.axaml` - Main window
-- `src/Heh8080.App/ViewModels/MainViewModel.cs` - App logic
+- `src/Heh8080.Desktop/Controls/RetroTerminalControl.cs` - CRT terminal with SKSL shader
+- `src/Heh8080.Desktop/Views/MainWindow.axaml` - Main window
+- `src/Heh8080.Desktop/Views/MainView.axaml.cs` - Terminal wiring
 
 ### Entry Points
 - `src/Heh8080.Desktop/Program.cs` - Desktop entry (NativeAOT)

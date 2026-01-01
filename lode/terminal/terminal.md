@@ -132,6 +132,7 @@ Light gray bezel (#B8B8B0) with 3D shading:
 - Top/left: subtle highlight
 - Bottom/right: subtle shadow
 - Screen appears recessed behind housing
+- FJM-3A logo button in top-left corner (click opens ConfigDialog)
 
 ### Rendering Pipeline
 1. Terminal content rendered centered to offscreen `SKSurface`
@@ -147,6 +148,11 @@ Light gray bezel (#B8B8B0) with 3D shading:
 
 ## Keyboard Mapping
 
+Input is filtered to ADM-3A compatible characters only:
+
+**Text Input**: Printable ASCII only (0x20-0x7E)
+
+**Special Keys**:
 ```csharp
 Key.Return => 0x0D
 Key.Back => 0x08
@@ -154,11 +160,13 @@ Key.Delete => 0x7F
 Key.Escape => 0x1B
 Key.Tab => 0x09
 Key.Up => 0x0B    // ADM-3A: Ctrl+K
-Key.Down => 0x0A  // Line feed
-Key.Left => 0x08  // Backspace
+Key.Down => 0x0A  // ADM-3A: Ctrl+J (Line feed)
+Key.Left => 0x08  // ADM-3A: Ctrl+H (Backspace)
 Key.Right => 0x0C // ADM-3A: Ctrl+L
 Ctrl+A..Z => 0x01..0x1A
 ```
+
+Note: Arrow keys send same codes as Ctrl+H/J/K/L (this is why vi uses hjkl - Bill Joy used an ADM-3A).
 
 ## Usage
 

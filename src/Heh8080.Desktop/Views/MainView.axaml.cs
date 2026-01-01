@@ -1,30 +1,40 @@
 using Avalonia.Controls;
-using Heh8080.Terminal;
+using Avalonia.VisualTree;
+using Heh8080.ViewModels;
 
 namespace Heh8080.Views;
 
 public partial class MainView : UserControl
 {
-    private readonly Adm3aTerminal _terminal;
-
     public MainView()
     {
         InitializeComponent();
 
-        // Create and attach terminal
-        _terminal = new Adm3aTerminal();
-        Terminal.Terminal = _terminal;
+        // Wire terminal when DataContext is set
+        DataContextChanged += (s, e) =>
+        {
+            if (DataContext is MainViewModel vm)
+            {
+                Terminal.Terminal = vm.Terminal;
+            }
+        };
 
-        // Display welcome message
-        WriteString("heh8080 - Intel 8080 Emulator\r\n");
-        WriteString("FJM-3A Terminal Ready\r\n");
-        WriteString("\r\n");
-        WriteString(">");
+        // Handle logo click to open config dialog
+        Terminal.LogoClicked += OnLogoClicked;
     }
 
-    private void WriteString(string s)
+    private async void OnLogoClicked()
     {
-        foreach (char c in s)
-            _terminal.WriteChar((byte)c);
+        if (DataContext is not MainViewModel vm) return;
+
+        var window = this.GetVisualRoot() as Window;
+        if (window == null) return;
+
+        var dialog = new ConfigDialog();
+        dialog.SetViewModel(vm);
+        await dialog.ShowDialog(window);
+
+        // Re-focus terminal after dialog closes
+        Terminal.Focus();
     }
 }

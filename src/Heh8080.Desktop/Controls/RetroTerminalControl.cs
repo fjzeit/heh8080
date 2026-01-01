@@ -28,6 +28,17 @@ public class RetroTerminalControl : Control
     private const double ScreenCornerRadius = 40;
     private const double ScreenPaddingHorizontal = 80;  // Keep content away from curved edges
 
+    // Logo button area
+    private const double LogoWidth = 80;
+    private const double LogoHeight = 24;
+    private const double LogoMargin = 8;
+    private Rect _logoRect;
+
+    /// <summary>
+    /// Event fired when the FJM-3A logo is clicked.
+    /// </summary>
+    public event Action? LogoClicked;
+
     // Green phosphor colors (P1 phosphor)
     private static readonly SKColor BackgroundColor = new(0x0A, 0x14, 0x0A);
     private static readonly SKColor ForegroundColor = new(0x33, 0xFF, 0x33);
@@ -218,15 +229,55 @@ public class RetroTerminalControl : Control
             (float)_charWidth, (float)_charHeight, ScreenCornerRadius);
 
         context.Custom(operation);
+
+        // Draw FJM-3A logo button in top-left bezel area
+        _logoRect = new Rect(LogoMargin, LogoMargin, LogoWidth, LogoHeight);
+
+        // Logo background - dark inset
+        var logoBackground = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
+            GradientStops =
+            {
+                new GradientStop(Color.FromRgb(0x60, 0x60, 0x58), 0),
+                new GradientStop(Color.FromRgb(0x80, 0x80, 0x78), 1)
+            }
+        };
+        context.FillRectangle(logoBackground, _logoRect, 4);
+
+        // Logo border
+        var logoBorder = new Pen(new SolidColorBrush(Color.FromRgb(0x50, 0x50, 0x48)), 1);
+        context.DrawRectangle(null, logoBorder, _logoRect, 4, 4);
+
+        // Logo text
+        var logoText = new FormattedText(
+            "FJM-3A",
+            System.Globalization.CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            new Typeface(FontFamily, FontStyle.Normal, FontWeight.Bold),
+            12,
+            new SolidColorBrush(Color.FromRgb(0x33, 0xFF, 0x33)));
+
+        var textX = _logoRect.X + (_logoRect.Width - logoText.Width) / 2;
+        var textY = _logoRect.Y + (_logoRect.Height - logoText.Height) / 2;
+        context.DrawText(logoText, new Point(textX, textY));
     }
 
     protected override void OnTextInput(TextInputEventArgs e)
     {
         base.OnTextInput(e);
-        if (_terminal != null && !string.IsNullOrEmpty(e.Text))
+        if (_terminal == null || string.IsNullOrEmpty(e.Text))
+            return;
+
+        // ADM-3A only supports printable ASCII (0x20-0x7E)
+        foreach (char c in e.Text)
         {
-            _terminal.QueueInput(e.Text);
-            e.Handled = true;
+            if (c >= 0x20 && c <= 0x7E)
+            {
+                _terminal.QueueInput((byte)c);
+                e.Handled = true;
+            }
         }
     }
 
@@ -260,6 +311,23 @@ public class RetroTerminalControl : Control
         {
             _terminal.QueueInput(keyByte.Value);
             e.Handled = true;
+        }
+    }
+
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+
+        var point = e.GetPosition(this);
+        if (_logoRect.Contains(point))
+        {
+            LogoClicked?.Invoke();
+            e.Handled = true;
+        }
+        else
+        {
+            // Focus the control for keyboard input
+            Focus();
         }
     }
 }

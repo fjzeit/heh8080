@@ -29,7 +29,7 @@ tests/
 ```
 
 ## Current Status
-Phases 1-5 complete. Ready for Phase 6: Avalonia application.
+Phases 1-6 complete. Emulator runs LOLOS on desktop.
 
 ### Completed
 - **Phase 1**: Solution skeleton with all projects
@@ -53,12 +53,20 @@ Phases 1-5 complete. Ready for Phase 6: Avalonia application.
   - Heh8080.Terminal project (TerminalBuffer, Adm3aParser, Adm3aTerminal)
   - RetroTerminalControl with SKSL shader: barrel distortion, bloom, scanlines, vignette
   - 4:3 aspect ratio, light gray housing with 3D shading, anti-aliased edges
+  - ADM-3A compatible input: printable ASCII + control codes only
   - Supports ESC sequences for WordStar compatibility (ESC T, ESC Y)
   - 18 parser unit tests
+- **Phase 6**: Avalonia application:
+  - Emulator class orchestrates CPU on background thread (max speed)
+  - MainViewModel wires devices, handles auto-boot from bundled LOLOS disk
+  - FJM-3A logo button opens ConfigDialog for disk mount/unmount/reset
+  - 10ms timer interrupt via System.Threading.Timer
+  - Bundled lolos.dsk as embedded resource
+  - Idle detection in ConsolePortHandler reduces CPU usage when waiting for input
+  - **Verified working**: MBASIC (24KB multi-extent file) runs correctly
 
 ### Next
-- **Phase 6**: Avalonia application (emulator run loop, CPU↔Terminal wiring)
-- **Phase 7**: Platform integration (Browser needs shared UI library)
+- **Phase 7**: Platform integration (Browser WASM with IndexedDB disk storage)
 - **Phase 8**: LOLOS integration testing
 
 ## Build Notes

@@ -1,15 +1,18 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Heh8080.ViewModels"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="using:Heh8080.Views"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Heh8080.Views.MainWindow"
-        Icon="/Assets/avalonia-logo.ico"
-        Title="Heh8080"
+        x:DataType="vm:MainViewModel"
+        Title="heh8080"
         SizeToContent="WidthAndHeight"
         CanResize="False"
-        Background="#0A140A">
-        <views:MainView />
+        Background="#0A140A"
+        WindowStartupLocation="CenterScreen">
+
+    <Design.DataContext>
+        <vm:MainViewModel />
+    </Design.DataContext>
+
+    <views:MainView />
 </Window>
