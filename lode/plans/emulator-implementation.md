@@ -213,10 +213,23 @@ heh8080/
 8. ✓ Idle detection in ConsolePortHandler (Thread.Sleep after 100 polls)
 9. ✓ **Verified**: MBASIC 5.29 (24KB, multi-extent) loads and runs correctly
 
-### Phase 7: Platform Integration
-1. Browser: IndexedDB disk storage via JS interop
-2. Desktop NativeAOT publishing and testing
-3. Test on all desktop platforms (Win/Mac/Linux)
+### Phase 7: Platform Integration ✓
+1. ✓ Multi-targeted all libraries: Core, Devices, Terminal, App (`net10.0;net9.0-browser`)
+2. ✓ Added AoT compatibility: `<IsTrimmable>true</IsTrimmable>`, `<IsAotCompatible>true</IsAotCompatible>`
+3. ✓ Created shared UI library (Heh8080.App):
+   - MainViewModel with IDiskImageProvider abstraction
+   - MainView and RetroTerminalControl shared across platforms
+   - Namespace: Heh8080.UI (avoids conflict with Desktop's App class)
+4. ✓ Browser entry point (Heh8080.Browser):
+   - Avalonia WASM with WebGL2/WebGL1 rendering
+   - MemoryDiskImageProvider for in-browser disk operations
+   - IndexedDB disk storage via JS interop (interop.js, DiskStorageInterop.cs)
+   - Base64 encoding for byte[] marshalling across JS/C# boundary
+   - Loads saved disk from IndexedDB, falls back to bundled wwwroot/lolos.dsk
+   - Logo click saves current disk state to IndexedDB
+5. ✓ Fixed Directory.Build.props: removed TargetFramework to allow per-project targeting
+6. Desktop NativeAOT publishing (already configured, needs testing)
+7. Cross-platform testing (Win/Mac/Linux/Web) - needs verification
 
 ### Phase 8: Integration Testing
 1. Boot LOLOS successfully

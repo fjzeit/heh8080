@@ -1,54 +1,86 @@
-﻿/* HTML styles for the splash screen */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Hide all scrollbars */
+::-webkit-scrollbar {
+    display: none;
+}
+
+html, body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #0a1a0a;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+#out {
+    position: fixed;
+    inset: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    touch-action: none;
+}
+
+/* Ensure Avalonia canvas fills container exactly */
+#out canvas {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    touch-action: none;
+    -webkit-touch-callout: none;
+}
+
+/* Splash screen styles */
 .avalonia-splash {
     position: absolute;
     height: 100%;
     width: 100%;
-    background: white;
-    font-family: 'Outfit', sans-serif;
+    background: #0a1a0a;
+    font-family: 'Courier New', monospace;
     justify-content: center;
     align-items: center;
     display: flex;
+    flex-direction: column;
     pointer-events: none;
 }
 
-/* Light theme styles */
-@media (prefers-color-scheme: light) {
-    .avalonia-splash {
-        background: white;
-    }
-
-    .avalonia-splash h2 {
-        color: #1b2a4e;
-    }
-
-    .avalonia-splash a {
-        color: #0D6EFD;
-    }
-}
-
-@media (prefers-color-scheme: dark) {
-    .avalonia-splash {
-        background: #1b2a4e;
-    }
-
-    .avalonia-splash h2 {
-        color: white;
-    }
-
-    .avalonia-splash a {
-        color: white;
-    }
-}
-
 .avalonia-splash h2 {
+    color: #33ff33;
     font-weight: 400;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
+    margin-top: 16px;
 }
 
-.avalonia-splash a {
-    text-decoration: none;
-    font-size: 2.5rem;
-    display: block;   
+.avalonia-splash .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #1a3a1a;
+    border-top-color: #33ff33;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 .avalonia-splash.splash-close {

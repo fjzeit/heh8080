@@ -10,7 +10,7 @@ using Avalonia.Threading;
 using Heh8080.Terminal;
 using SkiaSharp;
 
-namespace Heh8080.Desktop.Controls;
+namespace Heh8080.UI.Controls;
 
 /// <summary>
 /// Retro CRT terminal control with green phosphor effect.
@@ -67,6 +67,8 @@ public class RetroTerminalControl : Control
 
     private static string GetDefaultMonospaceFont()
     {
+        if (OperatingSystem.IsBrowser())
+            return "monospace";
         if (OperatingSystem.IsWindows())
             return "Consolas";
         if (OperatingSystem.IsMacOS())

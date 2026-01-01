@@ -2,9 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:controls="using:Heh8080.Desktop.Controls"
+             xmlns:controls="using:Heh8080.UI.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Heh8080.Views.MainView"
+             x:Class="Heh8080.UI.Views.MainView"
              Background="#0A140A">
 
   <controls:RetroTerminalControl x:Name="Terminal"

@@ -19,21 +19,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" />
     <PackageReference Include="Avalonia.Desktop" />
-    <PackageReference Include="Avalonia.Themes.Fluent" />
-    <PackageReference Include="Avalonia.Fonts.Inter" />
-    <PackageReference Include="Avalonia.Skia" />
     <PackageReference Include="Avalonia.Diagnostics">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="CommunityToolkit.Mvvm" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Heh8080.Core\Heh8080.Core.csproj" />
-    <ProjectReference Include="..\Heh8080.Devices\Heh8080.Devices.csproj" />
-    <ProjectReference Include="..\Heh8080.Terminal\Heh8080.Terminal.csproj" />
+    <ProjectReference Include="..\Heh8080.App\Heh8080.App.csproj" />
   </ItemGroup>
 </Project>

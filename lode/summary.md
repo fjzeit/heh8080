@@ -19,18 +19,19 @@ Cross-platform Intel 8080 / Zilog Z80 CPU emulator designed to run LOLOS (a CP/M
 ## Project Structure
 ```
 src/
-  Heh8080.Core/      # Cpu8080, CpuZ80, memory, I/O bus
-  Heh8080.Devices/   # FDC, console, MMU, printer, auxiliary, timer
-  Heh8080.Terminal/  # FJM-3A terminal emulator (IConsoleDevice)
-  Heh8080.Desktop/   # Desktop app with Avalonia UI (NativeAOT)
-  Heh8080.Browser/   # WASM entry point (stub, Phase 7)
+  Heh8080.Core/      # Cpu8080, CpuZ80, memory, I/O bus (net10.0;net9.0-browser)
+  Heh8080.Devices/   # FDC, console, MMU, printer, auxiliary, timer (net10.0;net9.0-browser)
+  Heh8080.Terminal/  # FJM-3A terminal emulator (net10.0;net9.0-browser)
+  Heh8080.App/       # Shared UI library: ViewModels, Views, Controls (net10.0;net9.0-browser)
+  Heh8080.Desktop/   # Desktop entry point with Avalonia UI (net10.0, NativeAOT)
+  Heh8080.Browser/   # Browser entry point with Avalonia WASM (net9.0-browser)
 tests/
   Heh8080.Tests/     # Unit tests (63 total)
   cpu_tests/         # External test suites (8080: TST8080, 8080PRE, CPUTEST, 8080EXM; Z80: ZEXDOC, ZEXALL)
 ```
 
 ## Current Status
-Phases 1-6 complete plus Z80 support. Emulator runs LOLOS on desktop with Z80 as default CPU.
+Phases 1-7 complete plus Z80 support. Emulator runs LOLOS on desktop (net10.0 NativeAOT) and browser (net9.0 WASM).
 
 ### Completed
 - **Phase 1**: Solution skeleton with all projects
@@ -77,13 +78,21 @@ Phases 1-6 complete plus Z80 support. Emulator runs LOLOS on desktop with Z80 as
   - Interrupt modes 0/1/2
   - CPU type selection in ConfigDialog (Z80 default, 8080 available)
   - ZEXDOC/ZEXALL test suites integrated (first test passes)
+- **Phase 7**: Platform integration complete:
+  - Multi-targeted libraries: Core, Devices, Terminal, App (net10.0;net9.0-browser)
+  - All libraries marked `<IsTrimmable>true</IsTrimmable>` and `<IsAotCompatible>true</IsAotCompatible>`
+  - Shared UI library (Heh8080.App): MainViewModel, MainView, RetroTerminalControl
+  - Browser entry point (Heh8080.Browser): Avalonia WASM with WebGL rendering
+  - IndexedDB disk storage via JS interop (save/load disk images)
+  - MemoryDiskImageProvider for in-browser disk operations
+  - Base64 encoding for byte[] marshalling across JS/C# boundary
 
 ### Next
-- **Phase 7**: Platform integration (Browser WASM with IndexedDB disk storage)
 - **Phase 8**: LOLOS integration testing
 
 ## Build Notes
-- All projects target `net10.0`
-- Desktop uses NativeAOT - all code must be AoT-compatible
-- Browser stub for Phase 7 (will need multi-targeted Core/Devices)
+- Libraries target `net10.0;net9.0-browser` for cross-platform support
+- Desktop (net10.0) uses NativeAOT - all code must be AoT-compatible
+- Browser (net9.0-browser) uses WASM with `browser-wasm` RuntimeIdentifier
 - Central package management via `Directory.Packages.props`
+- Directory.Build.props removed TargetFramework to allow per-project targeting

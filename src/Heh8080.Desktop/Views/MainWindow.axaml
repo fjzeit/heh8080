@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:Heh8080.ViewModels"
-        xmlns:views="using:Heh8080.Views"
+        xmlns:vm="using:Heh8080.UI.ViewModels"
+        xmlns:views="using:Heh8080.UI.Views"
         x:Class="Heh8080.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="heh8080"
@@ -10,9 +10,5 @@
         Background="#0A140A"
         WindowStartupLocation="CenterScreen">
 
-    <Design.DataContext>
-        <vm:MainViewModel />
-    </Design.DataContext>
-
-    <views:MainView />
+    <views:MainView x:Name="MainView" />
 </Window>

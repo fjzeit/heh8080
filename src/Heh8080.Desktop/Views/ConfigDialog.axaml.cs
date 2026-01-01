@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Heh8080.UI.ViewModels;
 using Heh8080.Core;
-using Heh8080.ViewModels;
+using Heh8080.Devices;
 
 namespace Heh8080.Views;
 
@@ -69,9 +71,15 @@ public partial class ConfigDialog : Window
         if (files.Count > 0)
         {
             var path = files[0].Path.LocalPath;
-            await _viewModel.MountDiskFromPath(drive, path);
-            UpdateDriveLabels();
-            StatusLabel.Text = $"Mounted to {(char)('A' + drive)}:";
+            var diskProvider = _viewModel.DiskProvider as FileDiskImageProvider;
+            if (diskProvider != null)
+            {
+                diskProvider.Mount(drive, path, readOnly: false);
+                _viewModel.UpdateDriveStatus(drive, Path.GetFileName(path));
+                await _viewModel.MountAndBoot(drive);
+                UpdateDriveLabels();
+                StatusLabel.Text = $"Mounted to {(char)('A' + drive)}:";
+            }
         }
     }
 

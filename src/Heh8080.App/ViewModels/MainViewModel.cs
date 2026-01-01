@@ -1,7 +1,6 @@
 using System;
-using System.IO;
-using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -9,12 +8,12 @@ using Heh8080.Core;
 using Heh8080.Devices;
 using Heh8080.Terminal;
 
-namespace Heh8080.ViewModels;
+namespace Heh8080.UI.ViewModels;
 
 public partial class MainViewModel : ViewModelBase, IDisposable
 {
     private Emulator _emulator;
-    private readonly FileDiskImageProvider _diskProvider;
+    private readonly IDiskImageProvider _diskProvider;
     private readonly Adm3aTerminal _terminal;
     private CpuType _cpuType = CpuType.ZilogZ80;
 
@@ -30,9 +29,6 @@ public partial class MainViewModel : ViewModelBase, IDisposable
 
     // Timer for 10ms interrupts
     private System.Threading.Timer? _interruptTimer;
-
-    // Temp file for extracted disk image
-    private string? _extractedDiskPath;
 
     [ObservableProperty]
     private string _statusText = "Initializing...";
@@ -50,16 +46,18 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private string? _driveDPath;
 
     public Adm3aTerminal Terminal => _terminal;
+    public IDiskImageProvider DiskProvider => _diskProvider;
     public bool IsRunning => _emulator.IsRunning;
     public CpuType CpuType => _cpuType;
     public string CpuTypeName => _cpuType == CpuType.ZilogZ80 ? "Z80" : "8080";
 
-    public MainViewModel()
+    public MainViewModel(IDiskImageProvider diskProvider)
     {
+        _diskProvider = diskProvider;
+
         // Initialize emulator with Z80 by default
         _emulator = new Emulator(_cpuType);
         _terminal = new Adm3aTerminal();
-        _diskProvider = new FileDiskImageProvider();
 
         // Create and register devices
         _console = new ConsolePortHandler(_terminal);
@@ -94,55 +92,41 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         _emulator.Started += () => Dispatcher.UIThread.Post(() => StatusText = "Running");
         _emulator.Stopped += () => Dispatcher.UIThread.Post(() => StatusText = "Stopped");
         _emulator.Error += ex => Dispatcher.UIThread.Post(() => StatusText = $"Error: {ex.Message}");
-
-        // Auto-boot
-        AutoBoot();
     }
 
-    private void AutoBoot()
+    /// <summary>
+    /// Boot from the disk mounted on drive A:
+    /// </summary>
+    public void Boot()
     {
         try
         {
-            // Try to extract and mount bundled LOLOS disk
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = "Heh8080.Desktop.Assets.disks.lolos.dsk";
-
-            using var stream = assembly.GetManifestResourceStream(resourceName);
-            if (stream != null)
+            if (!_diskProvider.IsMounted(0))
             {
-                // Extract to temp file
-                _extractedDiskPath = Path.Combine(Path.GetTempPath(), "heh8080_lolos.dsk");
-                using (var fs = File.Create(_extractedDiskPath))
-                {
-                    stream.CopyTo(fs);
-                }
-
-                // Mount to drive A:
-                _diskProvider.Mount(0, _extractedDiskPath, readOnly: false);
-                DriveAPath = "lolos.img";
-
-                // Load boot sector (track 0, sector 1) to 0x0000
-                Span<byte> bootSector = stackalloc byte[128];
-                if (_diskProvider.ReadSector(0, 0, 1, bootSector))
-                {
-                    _emulator.Load(0x0000, bootSector);
-                    _emulator.Cpu.PC = 0x0000;
-                    _emulator.Cpu.SP = 0xFFFF;
-
-                    // Start the interrupt timer and emulator
-                    StartInterruptTimer();
-                    _emulator.Start();
-                    StatusText = "LOLOS booting...";
-                    return;
-                }
+                StatusText = "Ready - mount a disk to begin";
+                WriteToTerminal("heh8080 - Intel 8080 Emulator\r\n");
+                WriteToTerminal("FJM-3A Terminal Ready\r\n");
+                WriteToTerminal("\r\nNo boot disk found. Click the FJM-3A logo\r\n");
+                WriteToTerminal("to mount a disk image.\r\n");
+                return;
             }
 
-            // No bundled disk or boot failed - show welcome message
-            StatusText = "Ready - mount a disk to begin";
-            WriteToTerminal("heh8080 - Intel 8080 Emulator\r\n");
-            WriteToTerminal("FJM-3A Terminal Ready\r\n");
-            WriteToTerminal("\r\nNo boot disk found. Click the FJM-3A logo\r\n");
-            WriteToTerminal("to mount a disk image.\r\n");
+            // Load boot sector (track 0, sector 1) to 0x0000
+            Span<byte> bootSector = stackalloc byte[128];
+            if (_diskProvider.ReadSector(0, 0, 1, bootSector))
+            {
+                _emulator.Load(0x0000, bootSector);
+                _emulator.Cpu.PC = 0x0000;
+                _emulator.Cpu.SP = 0xFFFF;
+
+                // Start the interrupt timer and emulator
+                StartInterruptTimer();
+                _emulator.Start();
+                StatusText = "Booting...";
+                return;
+            }
+
+            StatusText = "Boot failed - could not read boot sector";
         }
         catch (Exception ex)
         {
@@ -182,7 +166,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
 
     private void OnDelayRequested(int units)
     {
-        // Delay n × 10ms - just sleep on the CPU thread
+        // Delay n x 10ms - just sleep on the CPU thread
         Thread.Sleep(units * 10);
     }
 
@@ -202,7 +186,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     }
 
     [RelayCommand]
-    private async Task Reset()
+    public async Task Reset()
     {
         await _emulator.StopAsync();
         StopInterruptTimer();
@@ -277,66 +261,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         StatusText = $"Switched to {CpuTypeName}";
     }
 
-    [RelayCommand]
-    private async Task MountDisk(int drive)
-    {
-        // This will be called from ConfigDialog with TopLevel reference
-        // For now, just update status - actual file picker is in ConfigDialog
-        StatusText = $"Mount disk to {(char)('A' + drive)}:";
-    }
-
-    public async Task MountDiskFromPath(int drive, string path)
-    {
-        try
-        {
-            bool wasRunning = _emulator.IsRunning;
-            if (wasRunning)
-            {
-                await _emulator.StopAsync();
-                StopInterruptTimer();
-            }
-
-            _diskProvider.Mount(drive, path, readOnly: false);
-            UpdateDriveStatus(drive, Path.GetFileName(path));
-            StatusText = $"Mounted {Path.GetFileName(path)} to {(char)('A' + drive)}:";
-
-            // If mounting to A: and not running, boot from it
-            if (drive == 0 && !wasRunning)
-            {
-                Span<byte> bootSector = stackalloc byte[128];
-                if (_diskProvider.ReadSector(0, 0, 1, bootSector))
-                {
-                    _emulator.Reset();
-                    _terminal.Buffer.Clear();
-                    _emulator.Load(0x0000, bootSector);
-                    _emulator.Cpu.PC = 0x0000;
-                    _emulator.Cpu.SP = 0xFFFF;
-                    StartInterruptTimer();
-                    _emulator.Start();
-                    StatusText = "Booting...";
-                }
-            }
-            else if (wasRunning)
-            {
-                StartInterruptTimer();
-                _emulator.Start();
-            }
-        }
-        catch (Exception ex)
-        {
-            StatusText = $"Mount failed: {ex.Message}";
-        }
-    }
-
-    [RelayCommand]
-    private void UnmountDisk(int drive)
-    {
-        _diskProvider.Unmount(drive);
-        UpdateDriveStatus(drive, null);
-        StatusText = $"Unmounted {(char)('A' + drive)}:";
-    }
-
-    private void UpdateDriveStatus(int drive, string? path)
+    public void UpdateDriveStatus(int drive, string? path)
     {
         switch (drive)
         {
@@ -347,18 +272,57 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         }
     }
 
+    public async Task MountAndBoot(int drive)
+    {
+        bool wasRunning = _emulator.IsRunning;
+        if (wasRunning)
+        {
+            await _emulator.StopAsync();
+            StopInterruptTimer();
+        }
+
+        // If mounting to A: and not running, boot from it
+        if (drive == 0 && !wasRunning && _diskProvider.IsMounted(0))
+        {
+            Span<byte> bootSector = stackalloc byte[128];
+            if (_diskProvider.ReadSector(0, 0, 1, bootSector))
+            {
+                _emulator.Reset();
+                _terminal.Buffer.Clear();
+                _emulator.Load(0x0000, bootSector);
+                _emulator.Cpu.PC = 0x0000;
+                _emulator.Cpu.SP = 0xFFFF;
+                StartInterruptTimer();
+                _emulator.Start();
+                StatusText = "Booting...";
+                return;
+            }
+        }
+
+        if (wasRunning)
+        {
+            StartInterruptTimer();
+            _emulator.Start();
+        }
+    }
+
+    [RelayCommand]
+    public void UnmountDisk(int drive)
+    {
+        _diskProvider.Unmount(drive);
+        UpdateDriveStatus(drive, null);
+        StatusText = $"Unmounted {(char)('A' + drive)}:";
+    }
+
     public void Dispose()
     {
         StopInterruptTimer();
         _emulator.StopAsync().Wait(TimeSpan.FromSeconds(1));
         _emulator.Dispose();
-        _diskProvider.Dispose();
 
-        // Clean up temp file
-        if (_extractedDiskPath != null && File.Exists(_extractedDiskPath))
+        if (_diskProvider is IDisposable disposable)
         {
-            try { File.Delete(_extractedDiskPath); }
-            catch { /* Ignore cleanup errors */ }
+            disposable.Dispose();
         }
     }
 }
