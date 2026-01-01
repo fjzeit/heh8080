@@ -1,0 +1,25 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Avalonia -->
+    <PackageVersion Include="Avalonia" Version="11.3.10" />
+    <PackageVersion Include="Avalonia.Desktop" Version="11.3.10" />
+    <PackageVersion Include="Avalonia.Browser" Version="11.3.10" />
+    <PackageVersion Include="Avalonia.Themes.Fluent" Version="11.3.10" />
+    <PackageVersion Include="Avalonia.Fonts.Inter" Version="11.3.10" />
+    <PackageVersion Include="Avalonia.Diagnostics" Version="11.3.10" />
+    <PackageVersion Include="Avalonia.Skia" Version="11.3.10" />
+
+    <!-- MVVM -->
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+
+    <!-- Testing -->
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+  </ItemGroup>
+</Project>

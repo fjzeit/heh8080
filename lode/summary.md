@@ -29,4 +29,10 @@ tests/
 ```
 
 ## Current Status
-Planning complete. Ready for Phase 1: Project Setup.
+Phase 1 complete. Solution skeleton builds successfully. Ready for Phase 2: CPU Implementation.
+
+## Build Notes
+- Core/Devices/App multitarget `net10.0;net9.0` for Browser compatibility
+- Desktop targets `net10.0` with NativeAOT enabled
+- Browser targets `net9.0-browser` (Avalonia WASM limitation)
+- Central package management via `Directory.Packages.props`

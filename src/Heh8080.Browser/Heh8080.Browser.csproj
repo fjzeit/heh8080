@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net9.0-browser</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Heh8080.App\Heh8080.App.csproj" />
+  </ItemGroup>
+</Project>
