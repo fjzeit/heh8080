@@ -1,6 +1,6 @@
 # heh8080
 
-Cross-platform Intel 8080 CPU emulator designed to run LOLOS (a CP/M 2.2 compatible OS).
+Cross-platform Intel 8080 / Zilog Z80 CPU emulator designed to run LOLOS (a CP/M 2.2 compatible OS) and legacy Z80 software.
 
 ## Technology
 - .NET 10, Avalonia UI 11.x
@@ -8,6 +8,7 @@ Cross-platform Intel 8080 CPU emulator designed to run LOLOS (a CP/M 2.2 compati
 - MIT licensed
 
 ## Key Features
+- Dual CPU support: Intel 8080 and Zilog Z80
 - CP/M compatible I/O ports (console, FDC, MMU, etc.)
 - Retro CRT terminal aesthetic on all platforms
 - Supports standard 8080 CPU test suites
@@ -18,18 +19,18 @@ Cross-platform Intel 8080 CPU emulator designed to run LOLOS (a CP/M 2.2 compati
 ## Project Structure
 ```
 src/
-  Heh8080.Core/      # CPU, memory, I/O bus
+  Heh8080.Core/      # Cpu8080, CpuZ80, memory, I/O bus
   Heh8080.Devices/   # FDC, console, MMU, printer, auxiliary, timer
   Heh8080.Terminal/  # FJM-3A terminal emulator (IConsoleDevice)
   Heh8080.Desktop/   # Desktop app with Avalonia UI (NativeAOT)
   Heh8080.Browser/   # WASM entry point (stub, Phase 7)
 tests/
-  Heh8080.Tests/     # Unit tests (62 total)
-  cpu_tests/         # External test suites (TST8080, 8080PRE, CPUTEST, 8080EXM)
+  Heh8080.Tests/     # Unit tests (63 total)
+  cpu_tests/         # External test suites (8080: TST8080, 8080PRE, CPUTEST, 8080EXM; Z80: ZEXDOC, ZEXALL)
 ```
 
 ## Current Status
-Phases 1-6 complete. Emulator runs LOLOS on desktop.
+Phases 1-6 complete plus Z80 support. Emulator runs LOLOS on desktop with Z80 as default CPU.
 
 ### Completed
 - **Phase 1**: Solution skeleton with all projects
@@ -64,6 +65,13 @@ Phases 1-6 complete. Emulator runs LOLOS on desktop.
   - Bundled lolos.dsk as embedded resource
   - Idle detection in ConsolePortHandler reduces CPU usage when waiting for input
   - **Verified working**: MBASIC (24KB multi-extent file) runs correctly
+- **Z80 Support**: Full Zilog Z80 CPU implementation:
+  - CpuZ80 class with complete instruction set (~1,300 opcodes)
+  - All prefix tables: CB (bit ops), ED (extended), DD/FD (IX/IY), DDCB/FDCB
+  - Z80 registers: IX, IY, I, R, alternate set (AF', BC', DE', HL')
+  - Interrupt modes 0/1/2
+  - CPU type selection in ConfigDialog (Z80 default, 8080 available)
+  - ZEXDOC/ZEXALL test suites integrated (first test passes)
 
 ### Next
 - **Phase 7**: Platform integration (Browser WASM with IndexedDB disk storage)

@@ -2,7 +2,9 @@
 
 ## Overview
 
-`Cpu8080` in `src/Heh8080.Core/Cpu8080.cs` implements the full Intel 8080 instruction set.
+`Cpu8080` in `src/Heh8080.Core/Cpu8080.cs` implements the full Intel 8080 instruction set. It implements the `ICpu` interface for polymorphic use with `CpuZ80`.
+
+See also: [Z80 CPU Implementation](z80.md)
 
 ## Registers
 
@@ -98,6 +100,8 @@ All standard 8080 CPU test suites pass:
 
 ## Related Files
 
+- `src/Heh8080.Core/ICpu.cs` - Common CPU interface
+- `src/Heh8080.Core/CpuZ80.cs` - Z80 implementation (see [z80.md](z80.md))
 - `src/Heh8080.Core/Memory.cs` - 64KB memory with banking
 - `src/Heh8080.Core/IoBus.cs` - I/O port dispatch
 - `src/Heh8080.Core/CpmTestHarness.cs` - Test runner

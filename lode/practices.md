@@ -1,15 +1,20 @@
 # Practices
 
 ## CPU Emulation
-- Switch-based opcode dispatch for clarity and debuggability
-- All 256 opcodes implemented, no undocumented instruction support
-- Flag computation: S, Z, AC (auxiliary carry), P (parity), CY (carry)
+- **8080**: Switch-based opcode dispatch for clarity and debuggability
+- **Z80**: Table-driven dispatch (Func<int>[] arrays) for prefix handling
+- Both CPUs implement `ICpu` interface for polymorphic use
+- Z80 is the default CPU; 8080 available via ConfigDialog
+- All opcodes implemented including Z80 undocumented (SLL, X/Y flags)
+- Flag computation: S, Z, H (half-carry), PV (parity/overflow), N (add/subtract), C (carry)
 - Maximum speed execution (no cycle throttling)
 
 ## Testing
-- Validate CPU with standard test suites (TST8080, 8080PRE, CPUTEST, 8080EXM)
+- Validate 8080 CPU with standard test suites (TST8080, 8080PRE, CPUTEST, 8080EXM)
+- Validate Z80 CPU with ZEXDOC.COM and ZEXALL.COM exercisers
 - Run TST8080/8080PRE after each opcode group during development
-- Full 8080EXM pass required before release
+- Full 8080EXM pass required before release (8080 mode)
+- Full ZEXALL pass required before release (Z80 mode)
 - Integration test with LOLOS boot and test suite
 
 ## Licensing
@@ -41,3 +46,14 @@ All code must be AoT-compatible:
 - Retro CRT terminal on all platforms (not just web)
 - Green phosphor color scheme (#33FF33 on #0A1A0A)
 - CRT effects: scanlines, barrel distortion, phosphor bloom
+
+## LOLOS Disk Updates
+To update the bundled LOLOS disk image from the latest build:
+```bash
+# Download latest artifact from fjzeit/lolos GitHub Actions
+gh run download $(gh run list --repo fjzeit/lolos --limit 1 --json databaseId -q '.[0].databaseId') \
+  --repo fjzeit/lolos --dir /tmp/lolos-build
+
+# Copy to embedded asset location
+cp /tmp/lolos-build/lolos-disk/drivea.dsk src/Heh8080.Desktop/Assets/disks/lolos.dsk
+```

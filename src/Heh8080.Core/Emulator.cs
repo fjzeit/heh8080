@@ -1,6 +1,18 @@
 namespace Heh8080.Core;
 
 /// <summary>
+/// CPU type selection.
+/// </summary>
+public enum CpuType
+{
+    /// <summary>Intel 8080 (1974)</summary>
+    Intel8080,
+
+    /// <summary>Zilog Z80 (1976)</summary>
+    ZilogZ80
+}
+
+/// <summary>
 /// Main emulator orchestrator. Manages CPU execution on a background thread
 /// with device coordination via the I/O bus.
 /// </summary>
@@ -8,7 +20,8 @@ public sealed class Emulator : IDisposable
 {
     private const int BatchSize = 10000;
 
-    public Cpu8080 Cpu { get; }
+    public ICpu Cpu { get; }
+    public CpuType CpuType { get; }
     public Memory Memory { get; }
     public IoBus IoBus { get; }
 
@@ -23,11 +36,17 @@ public sealed class Emulator : IDisposable
     private Task? _runTask;
     private readonly object _lock = new();
 
-    public Emulator()
+    public Emulator(CpuType cpuType = CpuType.ZilogZ80)
     {
+        CpuType = cpuType;
         Memory = new Memory();
         IoBus = new IoBus();
-        Cpu = new Cpu8080(Memory, IoBus);
+        Cpu = cpuType switch
+        {
+            CpuType.Intel8080 => new Cpu8080(Memory, IoBus),
+            CpuType.ZilogZ80 => new CpuZ80(Memory, IoBus),
+            _ => throw new ArgumentOutOfRangeException(nameof(cpuType))
+        };
     }
 
     /// <summary>

@@ -91,16 +91,40 @@
             <TextBlock Text="SYSTEM" FontWeight="Bold" Foreground="#33FF33"
                        FontFamily="Consolas,monospace" FontSize="12"/>
 
-            <StackPanel Orientation="Horizontal" Spacing="12" Margin="8,0,0,0">
-                <Button Content="Reset CPU" Click="Reset_Click"
-                        Background="#1A2A1A" Foreground="#33FF33"
-                        BorderBrush="#33FF33" BorderThickness="1"
-                        FontFamily="Consolas,monospace" FontSize="11"
-                        Padding="12,6" CornerRadius="2"/>
-                <TextBlock Text="Warm boot from A:" Foreground="#33FF33"
-                           FontFamily="Consolas,monospace" FontSize="11"
-                           Opacity="0.6" VerticalAlignment="Center"/>
-            </StackPanel>
+            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="80,*" Margin="8,0,0,0">
+                <Grid.Styles>
+                    <Style Selector="TextBlock">
+                        <Setter Property="FontFamily" Value="Consolas,monospace"/>
+                        <Setter Property="Foreground" Value="#33FF33"/>
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                    </Style>
+                    <Style Selector="RadioButton">
+                        <Setter Property="FontFamily" Value="Consolas,monospace"/>
+                        <Setter Property="Foreground" Value="#33FF33"/>
+                        <Setter Property="FontSize" Value="11"/>
+                    </Style>
+                </Grid.Styles>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="CPU:"/>
+                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="16">
+                    <RadioButton x:Name="CpuZ80" Content="Z80" GroupName="CpuType"
+                                 IsChecked="True" Click="CpuType_Click"/>
+                    <RadioButton x:Name="Cpu8080" Content="8080" GroupName="CpuType"
+                                 Click="CpuType_Click"/>
+                </StackPanel>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Action:" Margin="0,8,0,0"/>
+                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="0,8,0,0">
+                    <Button Content="Reset CPU" Click="Reset_Click"
+                            Background="#1A2A1A" Foreground="#33FF33"
+                            BorderBrush="#33FF33" BorderThickness="1"
+                            FontFamily="Consolas,monospace" FontSize="11"
+                            Padding="12,6" CornerRadius="2"/>
+                    <TextBlock Text="Warm boot from A:" Foreground="#33FF33"
+                               FontFamily="Consolas,monospace" FontSize="11"
+                               Opacity="0.6" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
 
             <Rectangle Height="1" Fill="#33FF33" Opacity="0.3" Margin="0,8,0,0"/>
 
@@ -111,7 +135,7 @@
 
             <!-- About -->
             <StackPanel Opacity="0.5" Margin="0,8,0,0">
-                <TextBlock Text="heh8080 - Intel 8080 Emulator"
+                <TextBlock Text="heh8080 - 8080/Z80 Emulator"
                            Foreground="#33FF33" FontFamily="Consolas,monospace"
                            FontSize="10" HorizontalAlignment="Center"/>
                 <TextBlock Text="github.com/fjzeit/heh8080"

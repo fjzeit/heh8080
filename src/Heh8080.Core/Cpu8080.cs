@@ -3,7 +3,7 @@ namespace Heh8080.Core;
 /// <summary>
 /// Intel 8080 CPU emulator with all 256 opcodes.
 /// </summary>
-public sealed class Cpu8080
+public sealed class Cpu8080 : ICpu
 {
     // 8-bit registers
     public byte A; // Accumulator
@@ -12,8 +12,8 @@ public sealed class Cpu8080
     public byte H, L; // HL pair
 
     // 16-bit registers
-    public ushort SP; // Stack pointer
-    public ushort PC; // Program counter
+    public ushort SP { get; set; } // Stack pointer
+    public ushort PC { get; set; } // Program counter
 
     // Flags (stored individually for speed)
     public bool FlagS;  // Sign (bit 7)
@@ -23,8 +23,8 @@ public sealed class Cpu8080
     public bool FlagCY; // Carry (bit 0)
 
     // Interrupt state
-    public bool InterruptsEnabled;
-    public bool Halted;
+    public bool InterruptsEnabled { get; set; }
+    public bool Halted { get; set; }
 
     // Memory and I/O
     private readonly IMemory _memory;

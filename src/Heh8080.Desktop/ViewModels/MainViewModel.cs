@@ -13,14 +13,15 @@ namespace Heh8080.ViewModels;
 
 public partial class MainViewModel : ViewModelBase, IDisposable
 {
-    private readonly Emulator _emulator;
+    private Emulator _emulator;
     private readonly FileDiskImageProvider _diskProvider;
     private readonly Adm3aTerminal _terminal;
+    private CpuType _cpuType = CpuType.ZilogZ80;
 
     // Devices
     private readonly ConsolePortHandler _console;
-    private readonly FloppyDiskController _fdc;
-    private readonly MemoryManagementUnit _mmu;
+    private FloppyDiskController _fdc;
+    private MemoryManagementUnit _mmu;
     private readonly TimerDevice _timer;
     private readonly DelayDevice _delay;
     private readonly HardwareControlDevice _hwControl;
@@ -50,11 +51,13 @@ public partial class MainViewModel : ViewModelBase, IDisposable
 
     public Adm3aTerminal Terminal => _terminal;
     public bool IsRunning => _emulator.IsRunning;
+    public CpuType CpuType => _cpuType;
+    public string CpuTypeName => _cpuType == CpuType.ZilogZ80 ? "Z80" : "8080";
 
     public MainViewModel()
     {
-        // Initialize emulator
-        _emulator = new Emulator();
+        // Initialize emulator with Z80 by default
+        _emulator = new Emulator(_cpuType);
         _terminal = new Adm3aTerminal();
         _diskProvider = new FileDiskImageProvider();
 
@@ -223,6 +226,55 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         }
 
         StatusText = "Reset";
+    }
+
+    public async Task SwitchCpuType(CpuType newType)
+    {
+        if (newType == _cpuType) return;
+
+        await _emulator.StopAsync();
+        StopInterruptTimer();
+        _emulator.Dispose();
+
+        _cpuType = newType;
+        _emulator = new Emulator(_cpuType);
+
+        // Re-register all devices
+        _console.Register(_emulator.IoBus);
+        _fdc = new FloppyDiskController(_diskProvider, _emulator.Memory);
+        _fdc.Register(_emulator.IoBus);
+        _mmu = new MemoryManagementUnit(_emulator.Memory);
+        _mmu.Register(_emulator.IoBus);
+        _timer.Register(_emulator.IoBus);
+        _delay.Register(_emulator.IoBus);
+        _hwControl.Register(_emulator.IoBus);
+        _printer.Register(_emulator.IoBus);
+        _aux.Register(_emulator.IoBus);
+
+        // Wire up emulator events
+        _emulator.Started += () => Dispatcher.UIThread.Post(() => StatusText = "Running");
+        _emulator.Stopped += () => Dispatcher.UIThread.Post(() => StatusText = "Stopped");
+        _emulator.Error += ex => Dispatcher.UIThread.Post(() => StatusText = $"Error: {ex.Message}");
+
+        _terminal.Buffer.Clear();
+
+        // Reboot if disk is mounted
+        if (_diskProvider.IsMounted(0))
+        {
+            Span<byte> bootSector = stackalloc byte[128];
+            if (_diskProvider.ReadSector(0, 0, 1, bootSector))
+            {
+                _emulator.Load(0x0000, bootSector);
+                _emulator.Cpu.PC = 0x0000;
+                _emulator.Cpu.SP = 0xFFFF;
+                StartInterruptTimer();
+                _emulator.Start();
+                StatusText = $"Switched to {CpuTypeName} - rebooting...";
+                return;
+            }
+        }
+
+        StatusText = $"Switched to {CpuTypeName}";
     }
 
     [RelayCommand]

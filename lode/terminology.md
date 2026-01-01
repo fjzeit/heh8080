@@ -1,6 +1,8 @@
 # Terminology
 
 - **8080** - Intel 8080, 8-bit microprocessor (1974), precursor to Z80 and x86
+- **Z80** - Zilog Z80, 8-bit microprocessor (1976), backward-compatible extension of 8080
+- **ICpu** - Common interface for CPU implementations (8080, Z80)
 - **CP/M** - Control Program for Microcomputers, 8-bit OS by Digital Research
 - **LOLOS** - CP/M 2.2 compatible OS written in pure 8080 assembly
 - **BDOS** - Basic Disk Operating System, CP/M's system call interface
@@ -15,3 +17,9 @@
 - **WASM** - WebAssembly, binary instruction format for web browsers
 - **Avalonia** - Cross-platform .NET UI framework (desktop + web)
 - **ADM-3A** - Lear Siegler terminal (1976), simple escape sequences, standard for CP/M era
+- **CB prefix** - Z80 opcode prefix for bit operations (BIT, SET, RES, rotates/shifts)
+- **DD prefix** - Z80 opcode prefix for IX register operations
+- **ED prefix** - Z80 opcode prefix for extended operations (block, 16-bit arithmetic)
+- **FD prefix** - Z80 opcode prefix for IY register operations
+- **IX/IY** - Z80 index registers, 16-bit, support displacement addressing
+- **ZEXALL** - Z80 instruction exerciser, tests all instructions including undocumented

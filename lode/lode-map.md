@@ -11,6 +11,7 @@
 
 ## Core
 - [core/cpu.md](core/cpu.md) - 8080 CPU implementation details
+- [core/z80.md](core/z80.md) - Z80 CPU implementation details
 
 ## Devices
 - [devices/io-ports.md](devices/io-ports.md) - I/O port specification

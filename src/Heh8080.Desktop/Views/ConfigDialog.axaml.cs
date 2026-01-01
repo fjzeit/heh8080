@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Heh8080.Core;
 using Heh8080.ViewModels;
 
 namespace Heh8080.Views;
@@ -20,6 +21,14 @@ public partial class ConfigDialog : Window
     {
         _viewModel = viewModel;
         UpdateDriveLabels();
+        UpdateCpuSelection();
+    }
+
+    private void UpdateCpuSelection()
+    {
+        if (_viewModel == null) return;
+        CpuZ80.IsChecked = _viewModel.CpuType == CpuType.ZilogZ80;
+        Cpu8080.IsChecked = _viewModel.CpuType == CpuType.Intel8080;
     }
 
     private void UpdateDriveLabels()
@@ -81,6 +90,18 @@ public partial class ConfigDialog : Window
 
         await _viewModel.ResetCommand.ExecuteAsync(null);
         StatusLabel.Text = "System reset";
+    }
+
+    private async void CpuType_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_viewModel == null) return;
+
+        var newType = CpuZ80.IsChecked == true ? CpuType.ZilogZ80 : CpuType.Intel8080;
+        if (newType != _viewModel.CpuType)
+        {
+            await _viewModel.SwitchCpuType(newType);
+            StatusLabel.Text = $"Switched to {_viewModel.CpuTypeName}";
+        }
     }
 
     private void Close_Click(object? sender, RoutedEventArgs e)
