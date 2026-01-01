@@ -12,9 +12,17 @@
 - Full 8080EXM pass required before release
 - Integration test with LOLOS boot and test suite
 
-## z80pack Compatibility
-- Match cpmsim I/O port assignments exactly
-- Use same disk image format (256KB flat binary, 77×26×128)
+## Licensing
+- heh8080 is MIT licensed
+- All dependencies must be MIT-compatible
+
+## Third-Party Integration
+- CPU test suites configured via HEH8080_CPU_TESTS env var
+- Tests skip gracefully when external tools not available
+
+## I/O Compatibility
+- CP/M compatible I/O ports (see devices/io-ports.md)
+- Disk format: 256KB flat binary (77 tracks × 26 sectors × 128 bytes)
 - Maintain BIOS/BDOS entry points for LOLOS compatibility
 
 ## Cross-Platform

@@ -1,0 +1,9 @@
+# Ignore all test binaries (user must download manually)
+*.COM
+*.com
+*.BIN
+*.bin
+
+# Keep documentation
+!.gitignore
+!README.md

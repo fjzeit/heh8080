@@ -14,7 +14,7 @@ Create an 8080 CPU emulator that runs LOLOS (CP/M 2.2 compatible OS) targeting:
 ## User Requirements
 - **UI Framework**: Avalonia UI (single codebase for desktop + web)
 - **Speed**: Maximum speed (no cycle throttling)
-- **Features**: Full cpmsim compatibility (MMU, printer, aux, network)
+- **Features**: Full CP/M I/O support (MMU, printer, aux, network)
 - **UI Style**: Custom retro terminal on ALL platforms (green phosphor, CRT effects)
 - **Disk handling**: Bundle LOLOS disk + platform-appropriate persistence
 - **Validation**: Use standard 8080 CPU test suites
@@ -111,7 +111,7 @@ heh8080/
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## cpmsim I/O Port Map (Full Compatibility)
+## I/O Port Map
 
 | Port | Device | Function |
 |------|--------|----------|
@@ -156,7 +156,7 @@ heh8080/
    - Bank 0 always present, up to 16 additional banks
    - Configurable segment size (default 48KB)
 
-6. **Disk Images**: z80pack compatible
+6. **Disk Images**: Standard CP/M format
    - Flat binary, 256KB each (77×26×128)
    - Desktop: File-based I/O
    - Browser: IndexedDB via JS interop
@@ -168,7 +168,7 @@ heh8080/
 2. Set up project structure (Core, Devices, App, Desktop, Browser)
 3. Configure NativeAOT for Desktop project
 4. Configure WASM build for Browser project
-5. Download CPU test files to `tests/cpu_tests/`
+5. Download CPU test files manually (see `tests/cpu_tests/README.md`), set `HEH8080_CPU_TESTS` env var
 
 ### Phase 2: CPU Implementation
 1. Implement Cpu8080 class (registers, flags)
@@ -254,21 +254,6 @@ heh8080/
 
 ## Acknowledgments
 
-### z80pack
-This project uses z80pack as a reference implementation for:
-- I/O port mapping (cpmsim device architecture)
-- Memory banking (MMU implementation)
-- Disk image format compatibility
-
-**z80pack** - Copyright (c) 1987-2025 Udo Munk and others
-- License: MIT
-- Repository: https://github.com/udo-munk/z80pack
-- Documentation: https://www.icl1900.co.uk/unix4fun/z80pack
-
-The I/O port assignments and device behavior in heh8080 are designed to be
-compatible with z80pack's cpmsim, allowing LOLOS and other CP/M systems
-developed for cpmsim to run unmodified.
-
 ### 8080 CPU Test Suites
 - TST8080.COM - Microcosm Associates 8080/8085 CPU Diagnostic v1.0, Copyright (C) 1980
 - 8080EXM.COM - Based on zexlax.z80 by Frank D. Cringle, Copyright (C) 1994
@@ -276,10 +261,7 @@ developed for cpmsim to run unmodified.
   - Further modified by Mike Douglas
 
 ## References
-- LOLOS source: `../lolos/src/` (BIOS at `bios.asm`)
-- z80pack cpmsim: `../z80pack/cpmsim/srcsim/` (simio.c for port map)
-- z80pack CPU: `../z80pack/z80core/sim8080.c` (reference implementation)
+- I/O port specification: `lode/devices/io-ports.md`
+- LOLOS: https://github.com/fjzeit/lolos
 - CPU tests: https://altairclone.com/downloads/cpu_tests/
-- superzazu/8080: https://github.com/superzazu/8080
 - Avalonia docs: https://docs.avaloniaui.net/
-- Avalonia releases: https://github.com/AvaloniaUI/Avalonia/releases

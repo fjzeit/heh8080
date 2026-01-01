@@ -3,8 +3,6 @@
 - **8080** - Intel 8080, 8-bit microprocessor (1974), precursor to Z80 and x86
 - **CP/M** - Control Program for Microcomputers, 8-bit OS by Digital Research
 - **LOLOS** - CP/M 2.2 compatible OS written in pure 8080 assembly
-- **z80pack** - Mature Z80/8080 emulator by Udo Munk, MIT licensed
-- **cpmsim** - z80pack's CP/M simulator with virtual disk/console devices
 - **BDOS** - Basic Disk Operating System, CP/M's system call interface
 - **BIOS** - Basic Input/Output System, hardware abstraction layer
 - **CCP** - Console Command Processor, CP/M's command line shell
