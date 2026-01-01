@@ -30,5 +30,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Heh8080.Core\Heh8080.Core.csproj" />
     <ProjectReference Include="..\Heh8080.Devices\Heh8080.Devices.csproj" />
+    <ProjectReference Include="..\Heh8080.Terminal\Heh8080.Terminal.csproj" />
   </ItemGroup>
 </Project>

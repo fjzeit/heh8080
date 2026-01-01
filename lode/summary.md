@@ -20,15 +20,16 @@ Cross-platform Intel 8080 CPU emulator designed to run LOLOS (a CP/M 2.2 compati
 src/
   Heh8080.Core/      # CPU, memory, I/O bus
   Heh8080.Devices/   # FDC, console, MMU, printer, auxiliary, timer
+  Heh8080.Terminal/  # FJM-3A terminal emulator (IConsoleDevice)
   Heh8080.Desktop/   # Desktop app with Avalonia UI (NativeAOT)
   Heh8080.Browser/   # WASM entry point (stub, Phase 7)
 tests/
-  Heh8080.Tests/     # Unit tests (45 total)
+  Heh8080.Tests/     # Unit tests (62 total)
   cpu_tests/         # External test suites (TST8080, 8080PRE, CPUTEST, 8080EXM)
 ```
 
 ## Current Status
-Phases 1-4 complete. Ready for Phase 5: RetroTerminal Control.
+Phases 1-5 complete. Ready for Phase 6: Avalonia application.
 
 ### Completed
 - **Phase 1**: Solution skeleton with all projects
@@ -48,10 +49,15 @@ Phases 1-4 complete. Ready for Phase 5: RetroTerminal Control.
   - DelayDevice (port 28)
   - HardwareControlDevice (port 160)
   - FileDiskImageProvider for desktop
+- **Phase 5**: FJM-3A terminal emulator with CRT effects:
+  - Heh8080.Terminal project (TerminalBuffer, Adm3aParser, Adm3aTerminal)
+  - RetroTerminalControl with SKSL shader: barrel distortion, bloom, scanlines, vignette
+  - 4:3 aspect ratio, light gray housing with 3D shading, anti-aliased edges
+  - Supports ESC sequences for WordStar compatibility (ESC T, ESC Y)
+  - 18 parser unit tests
 
 ### Next
-- **Phase 5**: RetroTerminal control
-- **Phase 6**: Avalonia application
+- **Phase 6**: Avalonia application (emulator run loop, CPU↔Terminal wiring)
 - **Phase 7**: Platform integration (Browser needs shared UI library)
 - **Phase 8**: LOLOS integration testing
 

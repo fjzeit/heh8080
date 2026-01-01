@@ -14,3 +14,4 @@
 - **NativeAOT** - Ahead-of-Time compilation to native code
 - **WASM** - WebAssembly, binary instruction format for web browsers
 - **Avalonia** - Cross-platform .NET UI framework (desktop + web)
+- **ADM-3A** - Lear Siegler terminal (1976), simple escape sequences, standard for CP/M era
