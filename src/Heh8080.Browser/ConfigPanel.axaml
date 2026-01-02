@@ -1,0 +1,136 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Heh8080.Browser.ConfigPanel"
+             IsVisible="False">
+
+    <!-- Semi-transparent backdrop -->
+    <Panel>
+        <Border Background="#80000000" PointerPressed="Backdrop_Click"/>
+
+        <!-- Config panel -->
+        <Border Background="#0A140A"
+                BorderBrush="#33FF33"
+                BorderThickness="2"
+                CornerRadius="4"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                MinWidth="380"
+                MaxHeight="600"
+                Padding="24">
+            <ScrollViewer>
+                <StackPanel Spacing="16">
+                    <!-- Title Bar -->
+                    <DockPanel Margin="0,0,0,8">
+                        <Button DockPanel.Dock="Right" Content="X" Click="Close_Click"
+                                Background="Transparent" Foreground="#33FF33"
+                                BorderThickness="0" FontFamily="Consolas,monospace"
+                                Padding="8,4" FontSize="14" FontWeight="Bold"/>
+                        <TextBlock Text="FJM-3A Configuration"
+                                   FontSize="18" FontWeight="Bold"
+                                   Foreground="#33FF33"
+                                   FontFamily="Consolas,monospace"
+                                   VerticalAlignment="Center"/>
+                    </DockPanel>
+
+                    <Rectangle Height="1" Fill="#33FF33" Opacity="0.3"/>
+
+                    <!-- Drive A: (System Disk) -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="DRIVE A: (System)" FontWeight="Bold" Foreground="#33FF33"
+                                   FontFamily="Consolas,monospace" FontSize="12"/>
+                        <TextBlock x:Name="DriveALabel" Text="lolos.dsk"
+                                   Foreground="#33FF33" FontFamily="Consolas,monospace"
+                                   FontSize="11" Opacity="0.8" Margin="8,0,0,0"/>
+                    </StackPanel>
+
+                    <Rectangle Height="1" Fill="#33FF33" Opacity="0.3"/>
+
+                    <!-- Drive B: (User Files) -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="DRIVE B: (User Files)" FontWeight="Bold" Foreground="#33FF33"
+                                   FontFamily="Consolas,monospace" FontSize="12"/>
+
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="8,0,0,0">
+                            <Button Content="Upload File" Click="UploadFile_Click"
+                                    Background="#1A2A1A" Foreground="#33FF33"
+                                    BorderBrush="#33FF33" BorderThickness="1"
+                                    FontFamily="Consolas,monospace" FontSize="11"
+                                    Padding="12,6" CornerRadius="2"/>
+                            <TextBlock Text=".COM, .BAS, etc."
+                                       Foreground="#33FF33" FontFamily="Consolas,monospace"
+                                       FontSize="10" Opacity="0.5" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- File list -->
+                        <Border Background="#0A0A0A" BorderBrush="#33FF33" BorderThickness="1"
+                                CornerRadius="2" Margin="8,4,0,0" Padding="8" MinHeight="60">
+                            <StackPanel x:Name="FileListPanel">
+                                <TextBlock x:Name="NoFilesLabel" Text="(empty - upload files to use)"
+                                           Foreground="#33FF33" FontFamily="Consolas,monospace"
+                                           FontSize="10" Opacity="0.5"/>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="Files persist in browser storage"
+                                   Foreground="#33FF33" FontFamily="Consolas,monospace"
+                                   FontSize="10" Opacity="0.4" Margin="8,0,0,0"/>
+                    </StackPanel>
+
+                    <Rectangle Height="1" Fill="#33FF33" Opacity="0.3"/>
+
+                    <!-- System Section -->
+                    <TextBlock Text="SYSTEM" FontWeight="Bold" Foreground="#33FF33"
+                               FontFamily="Consolas,monospace" FontSize="12"/>
+
+                    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="80,*" Margin="8,0,0,0">
+                        <Grid.Styles>
+                            <Style Selector="TextBlock">
+                                <Setter Property="FontFamily" Value="Consolas,monospace"/>
+                                <Setter Property="Foreground" Value="#33FF33"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                            <Style Selector="RadioButton">
+                                <Setter Property="FontFamily" Value="Consolas,monospace"/>
+                                <Setter Property="Foreground" Value="#33FF33"/>
+                                <Setter Property="FontSize" Value="11"/>
+                            </Style>
+                        </Grid.Styles>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="CPU:"/>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="16">
+                            <RadioButton x:Name="CpuZ80" Content="Z80" GroupName="CpuType"
+                                         IsChecked="True" Click="CpuType_Click"/>
+                            <RadioButton x:Name="Cpu8080" Content="8080" GroupName="CpuType"
+                                         Click="CpuType_Click"/>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Action:" Margin="0,12,0,0"/>
+                        <Button Grid.Row="1" Grid.Column="1" Content="Reset CPU" Click="Reset_Click"
+                                Background="#1A2A1A" Foreground="#33FF33"
+                                BorderBrush="#33FF33" BorderThickness="1"
+                                FontFamily="Consolas,monospace" FontSize="11"
+                                Padding="12,6" CornerRadius="2" Margin="0,12,0,0"
+                                HorizontalAlignment="Left"/>
+                    </Grid>
+
+                    <Rectangle Height="1" Fill="#33FF33" Opacity="0.3" Margin="0,8,0,0"/>
+
+                    <!-- Status -->
+                    <TextBlock x:Name="StatusLabel" Text="" Foreground="#33FF33"
+                               FontFamily="Consolas,monospace" FontSize="11"
+                               MinHeight="16" TextWrapping="Wrap"/>
+
+                    <!-- About -->
+                    <StackPanel Opacity="0.5" Margin="0,8,0,0">
+                        <TextBlock Text="heh8080 - 8080/Z80 Emulator"
+                                   Foreground="#33FF33" FontFamily="Consolas,monospace"
+                                   FontSize="10" HorizontalAlignment="Center"/>
+                        <TextBlock Text="github.com/fjzeit/heh8080"
+                                   Foreground="#33FF33" FontFamily="Consolas,monospace"
+                                   FontSize="10" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Panel>
+</UserControl>

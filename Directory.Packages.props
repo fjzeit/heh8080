@@ -16,6 +16,10 @@
     <!-- MVVM -->
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 
+    <!-- MCP -->
+    <PackageVersion Include="ModelContextProtocol" Version="0.2.0-preview.2" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.0-preview.2.25163.2" />
+
     <!-- Testing -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageVersion Include="xunit" Version="2.9.3" />

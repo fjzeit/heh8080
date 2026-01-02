@@ -24,11 +24,11 @@
     <Content Include="wwwroot\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <!-- Copy wwwroot to AppBundle after WASM build -->
-  <Target Name="CopyWwwrootToAppBundle" AfterTargets="WasmBuildApp">
+  <!-- Copy wwwroot to AppBundle after WASM build (both build and publish) -->
+  <Target Name="CopyWwwrootToAppBundle" AfterTargets="WasmBuildApp;WasmNestedPublishApp">
     <ItemGroup>
       <WwwrootFiles Include="wwwroot\**\*" />
     </ItemGroup>
-    <Copy SourceFiles="@(WwwrootFiles)" DestinationFiles="@(WwwrootFiles->'$(OutputPath)AppBundle\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(WwwrootFiles)" DestinationFiles="@(WwwrootFiles->'$(WasmAppDir)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
 </Project>

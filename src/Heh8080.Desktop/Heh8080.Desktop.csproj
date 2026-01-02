@@ -28,5 +28,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Heh8080.App\Heh8080.App.csproj" />
+    <ProjectReference Include="..\Heh8080.Mcp\Heh8080.Mcp.csproj" />
   </ItemGroup>
 </Project>

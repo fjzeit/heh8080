@@ -136,9 +136,28 @@ _hwControl.SetHaltCallback(OnHaltRequested);
 
 ## UI Design
 
-Minimal chrome - just the FJM-3A terminal with logo button:
+Borderless window with minimal chrome - just the FJM-3A terminal:
 
+- **Borderless**: `SystemDecorations="None"` - no title bar or window controls
+- **Drag to move**: Click and drag anywhere (except buttons) to move window
+- **Keyboard focus**: All keypresses route to terminal automatically
 - **Logo button**: Top-left bezel corner, "FJM-3A" text
+- **Scale buttons**: Top-right bezel corner, four buttons (100%, 80%, 60%, 40%)
+- **Exit button**: Bottom-right bezel corner, green square (no legend), closes app
 - **Click logo**: Opens ConfigDialog modal
 - **ConfigDialog**: Disk mount/unmount for A:-D:, Reset button
 - No Start/Stop - emulator runs continuously from launch
+
+## Display Scaling
+
+- **Default scale**: 60% (set in `MainWindow.axaml.cs`)
+- **Available scales**: 100%, 80%, 60%, 40%
+- **Window behavior**: Not user-resizable (`CanResize="False"`), auto-sizes to fit terminal on scale change
+- **User control**: Click scale buttons to change; window adjusts automatically
+- **Scale buttons**: Rendered in outer bezel, highlight current selection
+
+```csharp
+// MainWindow.axaml.cs
+MainView.TerminalScale = 0.6;  // Initial 60% scale
+MainView.TerminalScaleChanged += OnTerminalScaleChanged;  // Resize window on change
+```

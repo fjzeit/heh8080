@@ -103,13 +103,41 @@ public class Adm3aTerminal : IConsoleDevice
 | ESC * | Clear screen |
 | ESC : | Clear screen (alt) |
 
+## Display Scaling
+
+RetroTerminalControl supports four preset scales: 100%, 80%, 60%, and 40%.
+
+### Scale Property
+```csharp
+public double Scale { get; set; }  // 1.0, 0.8, 0.6, or 0.4
+public event Action<double>? ScaleChanged;
+```
+
+### Scale Buttons
+Four buttons in the top-right corner of the outer bezel allow users to select the scale:
+```
+┌─────────────────────────────[40%][60%][80%][100%]─┐
+│  ┌───────────────────────────────────────────┐   │
+│  │             CRT Screen                    │   │
+```
+
+### Platform Behavior
+- **Desktop**: Defaults to 60% scale. User can change via buttons. Window resizes to fit.
+- **Browser**: Auto-selects largest scale that fits viewport. Updates on window resize.
+
+### Scaled Dimensions
+All visual dimensions scale proportionally:
+- Font size: `28 * scale`
+- Bezel sizes, padding, corner radii
+- Logo button and scale button dimensions
+
 ## CRT Visual Effects
 
 RetroTerminalControl uses a SkiaSharp SKSL shader for authentic 1970s CRT effects.
 
-### Screen Geometry
-| Setting | Value | Purpose |
-|---------|-------|---------|
+### Screen Geometry (Base Values at 100% Scale)
+| Setting | Base Value | Purpose |
+|---------|------------|---------|
 | Aspect Ratio | 4:3 | Authentic CRT proportions |
 | Horizontal Padding | 120px | Keeps text away from curved edges |
 | Vertical Padding | 80px | Calculated from 4:3 ratio |

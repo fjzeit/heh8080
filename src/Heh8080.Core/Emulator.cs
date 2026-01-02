@@ -18,7 +18,7 @@ public enum CpuType
 /// </summary>
 public sealed class Emulator : IDisposable
 {
-    private const int BatchSize = 10000;
+    private const int BatchSize = 5000;
 
     public ICpu Cpu { get; }
     public CpuType CpuType { get; }
@@ -71,7 +71,8 @@ public sealed class Emulator : IDisposable
 
             _cts = new CancellationTokenSource();
             IsRunning = true;
-            _runTask = Task.Run(() => RunLoop(_cts.Token));
+            // Use async RunLoop that yields periodically (required for single-threaded WASM)
+            _runTask = RunLoopAsync(_cts.Token);
         }
         Started?.Invoke();
     }
@@ -128,17 +129,22 @@ public sealed class Emulator : IDisposable
         return cycles;
     }
 
-    private void RunLoop(CancellationToken ct)
+    private async Task RunLoopAsync(CancellationToken ct)
     {
         try
         {
             while (!ct.IsCancellationRequested && !Cpu.Halted)
             {
+                // Run a batch of instructions
                 for (int i = 0; i < BatchSize && !ct.IsCancellationRequested && !Cpu.Halted; i++)
                 {
                     Cpu.Step();
                     InstructionCount++;
                 }
+
+                // Delay to allow UI updates (critical for single-threaded WASM)
+                // Task.Yield() doesn't work in single-threaded WASM - need actual delay
+                await Task.Delay(1);
             }
         }
         catch (Exception ex)

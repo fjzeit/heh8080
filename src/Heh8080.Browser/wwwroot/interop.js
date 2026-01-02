@@ -128,3 +128,115 @@ export async function listDisks() {
 export function getOrigin() {
     return globalThis.location.origin;
 }
+
+// Get viewport dimensions
+export function getViewportWidth() {
+    return globalThis.innerWidth;
+}
+
+export function getViewportHeight() {
+    return globalThis.innerHeight;
+}
+
+// Resize callback reference
+let resizeCallback = null;
+
+// Register resize listener - callback receives [width, height]
+export function registerResizeListener(callback) {
+    resizeCallback = callback;
+    globalThis.addEventListener('resize', () => {
+        if (resizeCallback) {
+            resizeCallback(globalThis.innerWidth, globalThis.innerHeight);
+        }
+    });
+}
+
+// Clear all IndexedDB data (for debugging)
+export async function clearAllDisks() {
+    const database = await openDb();
+    return new Promise((resolve, reject) => {
+        const tx = database.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.clear();
+
+        request.onsuccess = () => {
+            console.log('IndexedDB cleared');
+            resolve(true);
+        };
+        request.onerror = () => reject(request.error);
+    });
+}
+
+// Direct console log from C#
+export function jsLog(message) {
+    console.log('[C#]', message);
+}
+
+// Fetch a file as base64 (workaround for HttpClient issues in WASM)
+export async function fetchFileAsBase64(url) {
+    console.log('JS fetchFileAsBase64:', url);
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    console.log('Fetched', bytes.length, 'bytes');
+
+    // Convert to base64
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
+// Open file picker and return selected file as {name, dataBase64}
+// Returns null if cancelled
+export function pickFile(acceptTypes) {
+    return new Promise((resolve) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = acceptTypes || '*';
+        input.style.display = 'none';
+        document.body.appendChild(input);
+
+        input.onchange = async () => {
+            document.body.removeChild(input);
+            if (input.files && input.files.length > 0) {
+                const file = input.files[0];
+                const arrayBuffer = await file.arrayBuffer();
+                const bytes = new Uint8Array(arrayBuffer);
+
+                // Convert to base64
+                let binary = '';
+                for (let i = 0; i < bytes.length; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                const dataBase64 = btoa(binary);
+
+                resolve(JSON.stringify({ name: file.name, dataBase64 }));
+            } else {
+                resolve(null);
+            }
+        };
+
+        input.oncancel = () => {
+            document.body.removeChild(input);
+            resolve(null);
+        };
+
+        // Fallback for browsers that don't support oncancel
+        const handleBlur = () => {
+            setTimeout(() => {
+                if (document.body.contains(input)) {
+                    document.body.removeChild(input);
+                    resolve(null);
+                }
+            }, 300);
+        };
+        globalThis.addEventListener('focus', handleBlur, { once: true });
+
+        input.click();
+    });
+}

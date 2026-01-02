@@ -26,3 +26,6 @@
 ## UI
 - [ui/desktop-app.md](ui/desktop-app.md) - Desktop application architecture
 - [ui/browser.md](ui/browser.md) - Browser WASM platform
+
+## MCP
+- [mcp/mcp-server.md](mcp/mcp-server.md) - MCP server for AI-assisted development

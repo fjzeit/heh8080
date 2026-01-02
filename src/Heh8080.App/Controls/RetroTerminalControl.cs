@@ -23,25 +23,55 @@ public class RetroTerminalControl : Control
     private double _charHeight;
     private bool _hasMeasured;
 
-    // CRT bezel settings - FJM-3A style
-    private const double BezelSize = 48;
-    private const double InnerBezelSize = 12;  // Dark frame around screen
-    private const double ScreenCornerRadius = 40;
-    private const float HousingCornerRadius = 16f;  // Rounded corners on outer housing
-    private const float InnerBezelCornerRadius = 44f;  // Rounded corners on inner dark bezel
-    private const double ScreenPaddingHorizontal = 120;  // Keep content away from curved edges
-    private const double ScreenPaddingVertical = 80;     // Vertical padding from curved edges
+    // Base dimensions at 100% scale - FJM-3A style
+    private const double BaseFontSize = 28.0;
+    private const double BaseBezelSize = 48;
+    private const double BaseInnerBezelSize = 12;  // Dark frame around screen
+    private const double BaseScreenCornerRadius = 40;
+    private const double BaseHousingCornerRadius = 16;  // Rounded corners on outer housing
+    private const double BaseInnerBezelCornerRadius = 44;  // Rounded corners on inner dark bezel
+    private const double BaseScreenPaddingHorizontal = 120;  // Keep content away from curved edges
+    private const double BaseScreenPaddingVertical = 80;     // Vertical padding from curved edges
+    private const double BaseLogoWidth = 80;
+    private const double BaseLogoHeight = 24;
+    private const double BaseLogoMargin = 8;
 
-    // Logo button area
-    private const double LogoWidth = 80;
-    private const double LogoHeight = 24;
-    private const double LogoMargin = 8;
+    // Scaled dimensions (computed from Scale property)
+    private double _bezelSize;
+    private double _innerBezelSize;
+    private double _screenCornerRadius;
+    private float _housingCornerRadius;
+    private float _innerBezelCornerRadius;
+    private double _screenPaddingHorizontal;
+    private double _screenPaddingVertical;
+    private double _logoWidth;
+    private double _logoHeight;
+    private double _logoMargin;
+
+    // Scale button areas
+    private Rect[] _scaleButtonRects = new Rect[4];
+    private static readonly double[] AvailableScales = { 1.0, 0.8, 0.6, 0.4 };
+    private static readonly string[] ScaleLabels = { "100%", "80%", "60%", "40%" };
     private Rect _logoRect;
 
     /// <summary>
     /// Event fired when the FJM-3A logo is clicked.
     /// </summary>
     public event Action? LogoClicked;
+
+    /// <summary>
+    /// Event fired when user clicks on non-interactive area (for window dragging).
+    /// </summary>
+    public event Action<PointerPressedEventArgs>? DragMoveRequested;
+
+    /// <summary>
+    /// Event fired when the exit button is clicked.
+    /// </summary>
+    public event Action? ExitClicked;
+
+    // Exit button area
+    private Rect _exitButtonRect;
+    private bool _exitPending;
 
     // Green phosphor colors (P1 phosphor)
     private static readonly SKColor BackgroundColor = new(0x0A, 0x14, 0x0A);
@@ -58,12 +88,29 @@ public class RetroTerminalControl : Control
 
     private SKTypeface? _typeface;
 
+    public static readonly StyledProperty<double> ScaleProperty =
+        AvaloniaProperty.Register<RetroTerminalControl, double>(nameof(Scale), 1.0);
+
     public static readonly StyledProperty<double> FontSizeProperty =
-        AvaloniaProperty.Register<RetroTerminalControl, double>(nameof(FontSize), 28);
+        AvaloniaProperty.Register<RetroTerminalControl, double>(nameof(FontSize), BaseFontSize);
 
     public static readonly StyledProperty<FontFamily> FontFamilyProperty =
         AvaloniaProperty.Register<RetroTerminalControl, FontFamily>(nameof(FontFamily),
             new FontFamily(GetDefaultMonospaceFont()));
+
+    /// <summary>
+    /// Gets or sets the display scale (1.0 = 100%, 0.5 = 50%, etc.)
+    /// </summary>
+    public double Scale
+    {
+        get => GetValue(ScaleProperty);
+        set => SetValue(ScaleProperty, value);
+    }
+
+    /// <summary>
+    /// Event fired when the scale changes.
+    /// </summary>
+    public event Action<double>? ScaleChanged;
 
     private static string GetDefaultMonospaceFont()
     {
@@ -109,18 +156,44 @@ public class RetroTerminalControl : Control
     {
         Focusable = true;
         ClipToBounds = true;
+        UpdateScaledDimensions();
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
 
-        if (change.Property == FontSizeProperty || change.Property == FontFamilyProperty)
+        if (change.Property == ScaleProperty)
+        {
+            // Update font size based on scale
+            SetValue(FontSizeProperty, BaseFontSize * Scale);
+            UpdateScaledDimensions();
+            _typeface = null;
+            MeasureCharacterSize();
+            InvalidateVisual();
+            ScaleChanged?.Invoke(Scale);
+        }
+        else if (change.Property == FontSizeProperty || change.Property == FontFamilyProperty)
         {
             _typeface = null;
             MeasureCharacterSize();
             InvalidateVisual();
         }
+    }
+
+    private void UpdateScaledDimensions()
+    {
+        var scale = Scale;
+        _bezelSize = BaseBezelSize * scale;
+        _innerBezelSize = BaseInnerBezelSize * scale;
+        _screenCornerRadius = BaseScreenCornerRadius * scale;
+        _housingCornerRadius = (float)(BaseHousingCornerRadius * scale);
+        _innerBezelCornerRadius = (float)(BaseInnerBezelCornerRadius * scale);
+        _screenPaddingHorizontal = BaseScreenPaddingHorizontal * scale;
+        _screenPaddingVertical = BaseScreenPaddingVertical * scale;
+        _logoWidth = BaseLogoWidth * scale;
+        _logoHeight = BaseLogoHeight * scale;
+        _logoMargin = BaseLogoMargin * scale;
     }
 
     private void OnContentChanged()
@@ -152,13 +225,13 @@ public class RetroTerminalControl : Control
         var terminalWidth = _charWidth * TerminalBuffer.Width;
         var terminalHeight = _charHeight * TerminalBuffer.Height;
 
-        // Screen width is terminal + horizontal padding
-        var screenWidth = terminalWidth + (ScreenPaddingHorizontal * 2);
+        // Screen width is terminal + horizontal padding (using scaled values)
+        var screenWidth = terminalWidth + (_screenPaddingHorizontal * 2);
         // Screen height is calculated for 4:3 aspect ratio
         var screenHeight = screenWidth * 3.0 / 4.0;
 
-        Width = screenWidth + (BezelSize * 2);
-        Height = screenHeight + (BezelSize * 2);
+        Width = screenWidth + (_bezelSize * 2);
+        Height = screenHeight + (_bezelSize * 2);
     }
 
     public override void Render(DrawingContext context)
@@ -169,15 +242,15 @@ public class RetroTerminalControl : Control
         var bounds = new Rect(Bounds.Size);
         var terminalWidth = _charWidth * TerminalBuffer.Width;
         var terminalHeight = _charHeight * TerminalBuffer.Height;
-        // Screen area with 4:3 aspect ratio
-        var screenWidth = terminalWidth + (ScreenPaddingHorizontal * 2);
+        // Screen area with 4:3 aspect ratio (using scaled padding)
+        var screenWidth = terminalWidth + (_screenPaddingHorizontal * 2);
         var screenHeight = screenWidth * 3.0 / 4.0;
-        var screenRect = new Rect(BezelSize, BezelSize, screenWidth, screenHeight);
+        var screenRect = new Rect(_bezelSize, _bezelSize, screenWidth, screenHeight);
 
         // Draw FJM-3A style housing with shading (rounded corners)
         // Base color
         var baseBrush = new SolidColorBrush(BezelColorLight);
-        context.FillRectangle(baseBrush, bounds, HousingCornerRadius);
+        context.FillRectangle(baseBrush, bounds, _housingCornerRadius);
 
         // Top edge highlight (outer surface catches light)
         var topHighlight = new LinearGradientBrush
@@ -190,7 +263,7 @@ public class RetroTerminalControl : Control
                 new GradientStop(Colors.Transparent, 1)
             }
         };
-        context.FillRectangle(topHighlight, bounds, HousingCornerRadius);
+        context.FillRectangle(topHighlight, bounds, _housingCornerRadius);
 
         // Bottom shadow (outer surface)
         var bottomShadow = new LinearGradientBrush
@@ -203,7 +276,7 @@ public class RetroTerminalControl : Control
                 new GradientStop(BezelColorDark, 1)
             }
         };
-        context.FillRectangle(bottomShadow, bounds, HousingCornerRadius);
+        context.FillRectangle(bottomShadow, bounds, _housingCornerRadius);
 
         // Left edge highlight (outer surface)
         var leftHighlight = new LinearGradientBrush
@@ -216,7 +289,7 @@ public class RetroTerminalControl : Control
                 new GradientStop(Colors.Transparent, 1)
             }
         };
-        context.FillRectangle(leftHighlight, bounds, HousingCornerRadius);
+        context.FillRectangle(leftHighlight, bounds, _housingCornerRadius);
 
         // Right shadow (outer surface)
         var rightShadow = new LinearGradientBrush
@@ -229,18 +302,18 @@ public class RetroTerminalControl : Control
                 new GradientStop(Color.FromArgb(40, 0, 0, 0), 1)
             }
         };
-        context.FillRectangle(rightShadow, bounds, HousingCornerRadius);
+        context.FillRectangle(rightShadow, bounds, _housingCornerRadius);
 
         // Draw inner bezel (frame around screen) with depth shading
         var innerBezelRect = new Rect(
-            BezelSize - InnerBezelSize,
-            BezelSize - InnerBezelSize,
-            screenWidth + (InnerBezelSize * 2),
-            screenHeight + (InnerBezelSize * 2));
+            _bezelSize - _innerBezelSize,
+            _bezelSize - _innerBezelSize,
+            screenWidth + (_innerBezelSize * 2),
+            screenHeight + (_innerBezelSize * 2));
 
         // Base color
         var innerBezelBrush = new SolidColorBrush(ScreenBezelColor);
-        context.FillRectangle(innerBezelBrush, innerBezelRect, InnerBezelCornerRadius);
+        context.FillRectangle(innerBezelBrush, innerBezelRect, _innerBezelCornerRadius);
 
         // Top shadow (inset, so top is darker)
         var innerTopShadow = new LinearGradientBrush
@@ -253,7 +326,7 @@ public class RetroTerminalControl : Control
                 new GradientStop(Colors.Transparent, 1)
             }
         };
-        context.FillRectangle(innerTopShadow, innerBezelRect, InnerBezelCornerRadius);
+        context.FillRectangle(innerTopShadow, innerBezelRect, _innerBezelCornerRadius);
 
         // Left shadow (inset)
         var innerLeftShadow = new LinearGradientBrush
@@ -266,7 +339,7 @@ public class RetroTerminalControl : Control
                 new GradientStop(Colors.Transparent, 1)
             }
         };
-        context.FillRectangle(innerLeftShadow, innerBezelRect, InnerBezelCornerRadius);
+        context.FillRectangle(innerLeftShadow, innerBezelRect, _innerBezelCornerRadius);
 
         // Bottom highlight (inset, so bottom catches light)
         var innerBottomHighlight = new LinearGradientBrush
@@ -279,7 +352,7 @@ public class RetroTerminalControl : Control
                 new GradientStop(ScreenBezelHighlight, 1)
             }
         };
-        context.FillRectangle(innerBottomHighlight, innerBezelRect, InnerBezelCornerRadius);
+        context.FillRectangle(innerBottomHighlight, innerBezelRect, _innerBezelCornerRadius);
 
         // Right highlight (inset)
         var innerRightHighlight = new LinearGradientBrush
@@ -292,17 +365,18 @@ public class RetroTerminalControl : Control
                 new GradientStop(Color.FromArgb(40, 255, 255, 255), 1)
             }
         };
-        context.FillRectangle(innerRightHighlight, innerBezelRect, InnerBezelCornerRadius);
+        context.FillRectangle(innerRightHighlight, innerBezelRect, _innerBezelCornerRadius);
 
         // Use custom draw operation for CRT effect (includes edge shadow in shader)
         var operation = new TerminalDrawOperation(
             screenRect, _terminal, _typeface, (float)FontSize,
-            (float)_charWidth, (float)_charHeight, ScreenCornerRadius);
+            (float)_charWidth, (float)_charHeight, _screenCornerRadius);
 
         context.Custom(operation);
 
         // Draw FJM-3A logo button in top-left bezel area
-        _logoRect = new Rect(LogoMargin, LogoMargin, LogoWidth, LogoHeight);
+        var logoCornerRadius = (float)(4 * Scale);
+        _logoRect = new Rect(_logoMargin, _logoMargin, _logoWidth, _logoHeight);
 
         // Logo background - dark inset
         var logoBackground = new LinearGradientBrush
@@ -315,24 +389,106 @@ public class RetroTerminalControl : Control
                 new GradientStop(Color.FromRgb(0x80, 0x80, 0x78), 1)
             }
         };
-        context.FillRectangle(logoBackground, _logoRect, 4);
+        context.FillRectangle(logoBackground, _logoRect, logoCornerRadius);
 
         // Logo border
         var logoBorder = new Pen(new SolidColorBrush(Color.FromRgb(0x50, 0x50, 0x48)), 1);
-        context.DrawRectangle(null, logoBorder, _logoRect, 4, 4);
+        context.DrawRectangle(null, logoBorder, _logoRect, logoCornerRadius, logoCornerRadius);
 
         // Logo text
+        var logoFontSize = 12 * Scale;
         var logoText = new FormattedText(
             "FJM-3A",
             System.Globalization.CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
             new Typeface(FontFamily, FontStyle.Normal, FontWeight.Bold),
-            12,
+            logoFontSize,
             new SolidColorBrush(Color.FromRgb(0x33, 0xFF, 0x33)));
 
         var textX = _logoRect.X + (_logoRect.Width - logoText.Width) / 2;
         var textY = _logoRect.Y + (_logoRect.Height - logoText.Height) / 2;
         context.DrawText(logoText, new Point(textX, textY));
+
+        // Draw scale buttons in top-right bezel area
+        RenderScaleButtons(context, bounds);
+    }
+
+    private void RenderScaleButtons(DrawingContext context, Rect bounds)
+    {
+        // Button dimensions (scaled)
+        var buttonWidth = 36 * Scale;
+        var buttonHeight = 20 * Scale;
+        var buttonSpacing = 4 * Scale;
+        var buttonMargin = _logoMargin;
+        var buttonCornerRadius = (float)(3 * Scale);
+        var buttonFontSize = 9 * Scale;
+
+        // Position buttons from right edge
+        var startX = bounds.Width - buttonMargin - (buttonWidth * 4) - (buttonSpacing * 3);
+        var buttonY = buttonMargin;
+
+        for (int i = 0; i < 4; i++)
+        {
+            var buttonX = startX + i * (buttonWidth + buttonSpacing);
+            var buttonRect = new Rect(buttonX, buttonY, buttonWidth, buttonHeight);
+            _scaleButtonRects[i] = buttonRect;
+
+            var isSelected = Math.Abs(Scale - AvailableScales[i]) < 0.01;
+
+            // Button background
+            var bgColor = isSelected
+                ? Color.FromRgb(0x33, 0x88, 0x33)  // Highlighted green for selected
+                : Color.FromRgb(0x60, 0x60, 0x58);
+            var bgBrush = new SolidColorBrush(bgColor);
+            context.FillRectangle(bgBrush, buttonRect, buttonCornerRadius);
+
+            // Button border
+            var borderColor = isSelected
+                ? Color.FromRgb(0x33, 0xFF, 0x33)
+                : Color.FromRgb(0x50, 0x50, 0x48);
+            var borderPen = new Pen(new SolidColorBrush(borderColor), 1);
+            context.DrawRectangle(null, borderPen, buttonRect, buttonCornerRadius, buttonCornerRadius);
+
+            // Button text
+            var textColor = isSelected
+                ? Color.FromRgb(0xFF, 0xFF, 0xFF)
+                : Color.FromRgb(0xB0, 0xB0, 0xA8);
+            var buttonText = new FormattedText(
+                ScaleLabels[i],
+                System.Globalization.CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight,
+                new Typeface(FontFamily, FontStyle.Normal, FontWeight.Normal),
+                buttonFontSize,
+                new SolidColorBrush(textColor));
+
+            var txtX = buttonRect.X + (buttonRect.Width - buttonText.Width) / 2;
+            var txtY = buttonRect.Y + (buttonRect.Height - buttonText.Height) / 2;
+            context.DrawText(buttonText, new Point(txtX, txtY));
+        }
+
+        // Draw exit button in bottom-right corner
+        RenderExitButton(context, bounds);
+    }
+
+    private void RenderExitButton(DrawingContext context, Rect bounds)
+    {
+        // Rectangular button, 2x width
+        var buttonHeight = 20 * Scale;
+        var buttonWidth = 40 * Scale;
+        var buttonMargin = _logoMargin;
+        var buttonCornerRadius = (float)(3 * Scale);
+
+        // Position in bottom-right corner
+        var buttonX = bounds.Width - buttonMargin - buttonWidth;
+        var buttonY = bounds.Height - buttonMargin - buttonHeight;
+        _exitButtonRect = new Rect(buttonX, buttonY, buttonWidth, buttonHeight);
+
+        // Green normally, dark red when exit pending
+        var bgColor = _exitPending
+            ? Color.FromRgb(0x88, 0x22, 0x22)  // Dark red
+            : Color.FromRgb(0x33, 0xAA, 0x33); // Green
+        var bgBrush = new SolidColorBrush(bgColor);
+        context.FillRectangle(bgBrush, _exitButtonRect, buttonCornerRadius);
     }
 
     protected override void OnTextInput(TextInputEventArgs e)
@@ -390,6 +546,31 @@ public class RetroTerminalControl : Control
         base.OnPointerPressed(e);
 
         var point = e.GetPosition(this);
+
+        // Check exit button first
+        if (_exitButtonRect.Contains(point))
+        {
+            // Show dark red color before exiting
+            _exitPending = true;
+            InvalidateVisual();
+
+            // Process messages so color change is visible, then exit
+            Dispatcher.UIThread.Post(() => ExitClicked?.Invoke(), DispatcherPriority.Background);
+            e.Handled = true;
+            return;
+        }
+
+        // Check scale buttons
+        for (int i = 0; i < _scaleButtonRects.Length; i++)
+        {
+            if (_scaleButtonRects[i].Contains(point))
+            {
+                Scale = AvailableScales[i];
+                e.Handled = true;
+                return;
+            }
+        }
+
         if (_logoRect.Contains(point))
         {
             LogoClicked?.Invoke();
@@ -399,6 +580,9 @@ public class RetroTerminalControl : Control
         {
             // Focus the control for keyboard input
             Focus();
+
+            // Request window drag move for non-button clicks
+            DragMoveRequested?.Invoke(e);
         }
     }
 }

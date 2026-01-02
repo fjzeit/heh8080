@@ -7,6 +7,7 @@
         Title="heh8080"
         SizeToContent="WidthAndHeight"
         CanResize="False"
+        SystemDecorations="None"
         Background="#0A140A"
         WindowStartupLocation="CenterScreen">
 

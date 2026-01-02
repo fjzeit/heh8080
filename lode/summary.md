@@ -11,7 +11,9 @@ Cross-platform Intel 8080 / Zilog Z80 CPU emulator designed to run LOLOS (a CP/M
 - Dual CPU support: Intel 8080 and Zilog Z80
 - CP/M compatible I/O ports (console, FDC, MMU, etc.)
 - Retro CRT terminal aesthetic on all platforms
+- Responsive scaling (100%, 75%, 50%, 25%) with platform-aware defaults
 - Supports standard 8080 CPU test suites
+- MCP (Model Context Protocol) server for AI-assisted development
 
 ## Related Projects
 - **LOLOS**: https://github.com/fjzeit/lolos - CP/M 2.2 compatible OS in pure 8080 assembly
@@ -23,6 +25,7 @@ src/
   Heh8080.Devices/   # FDC, console, MMU, printer, auxiliary, timer (net10.0;net9.0-browser)
   Heh8080.Terminal/  # FJM-3A terminal emulator (net10.0;net9.0-browser)
   Heh8080.App/       # Shared UI library: ViewModels, Views, Controls (net10.0;net9.0-browser)
+  Heh8080.Mcp/       # MCP server for AI-assisted development (net10.0)
   Heh8080.Desktop/   # Desktop entry point with Avalonia UI (net10.0, NativeAOT)
   Heh8080.Browser/   # Browser entry point with Avalonia WASM (net9.0-browser)
 tests/

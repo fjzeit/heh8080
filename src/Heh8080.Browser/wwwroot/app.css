@@ -38,13 +38,16 @@ body {
     box-sizing: border-box;
     overflow: hidden;
     touch-action: none;
+    /* Center the terminal in the viewport */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #1a1a1a;
 }
 
-/* Ensure Avalonia canvas fills container exactly */
+/* Avalonia canvas - don't force 100% size, let it size naturally */
 #out canvas {
     display: block !important;
-    width: 100% !important;
-    height: 100% !important;
     touch-action: none;
     -webkit-touch-callout: none;
 }

@@ -3,8 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>heh8080 - 8080/Z80 Emulator</title>
     <link rel="stylesheet" href="./app.css">
+    <script>
+        // Force clear all caches before loading the app
+        (async function() {
+            console.log('=== PWA Cache Buster v3 ===');
+
+            // Unregister all service workers
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (const registration of registrations) {
+                    await registration.unregister();
+                    console.log('Unregistered SW:', registration.scope);
+                }
+            }
+
+            // Clear all Cache API caches
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                for (const cacheName of cacheNames) {
+                    await caches.delete(cacheName);
+                    console.log('Deleted cache:', cacheName);
+                }
+            }
+
+            console.log('=== Cache clearing complete ===');
+        })();
+    </script>
 </head>
 <body>
 <div id="out">
