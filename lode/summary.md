@@ -26,12 +26,12 @@ src/
   Heh8080.Desktop/   # Desktop entry point with Avalonia UI (net10.0, NativeAOT)
   Heh8080.Browser/   # Browser entry point with Avalonia WASM (net9.0-browser)
 tests/
-  Heh8080.Tests/     # Unit tests (63 total)
+  Heh8080.Tests/     # Unit and integration tests (72 total)
   cpu_tests/         # External test suites (8080: TST8080, 8080PRE, CPUTEST, 8080EXM; Z80: ZEXDOC, ZEXALL)
 ```
 
 ## Current Status
-Phases 1-7 complete plus Z80 support. Emulator runs LOLOS on desktop (net10.0 NativeAOT) and browser (net9.0 WASM).
+All phases complete (1-8) plus Z80 support. Emulator runs LOLOS on desktop (net10.0 NativeAOT) and browser (net9.0 WASM).
 
 ### Completed
 - **Phase 1**: Solution skeleton with all projects
@@ -86,9 +86,21 @@ Phases 1-7 complete plus Z80 support. Emulator runs LOLOS on desktop (net10.0 Na
   - IndexedDB disk storage via JS interop (save/load disk images)
   - MemoryDiskImageProvider for in-browser disk operations
   - Base64 encoding for byte[] marshalling across JS/C# boundary
+  - Viewport-filling CSS: `#out { position: fixed; inset: 0; }` with canvas 100% sizing
+  - Desktop NativeAOT verified: 19MB native binary (linux-x64)
+- **Phase 8**: Integration testing complete:
+  - 72 automated tests (69 pass, 3 skipped long-running)
+  - LOLOS boot verification on Z80 and 8080
+  - LOLOS command execution tests (DIR, wildcards, error handling)
+  - Desktop NativeAOT: 19MB native binary
+  - Browser WASM: 39MB AppBundle
+  - MBASIC verified working (24KB multi-extent file)
 
-### Next
-- **Phase 8**: LOLOS integration testing
+### Production Ready
+The emulator is feature-complete and tested. Future enhancements could include:
+- Additional test coverage from LOLOS test suite (requires building test programs)
+- Performance optimization based on profiling
+- Additional classic software testing (BBC BASIC, Colossal Cave, etc.)
 
 ## Build Notes
 - Libraries target `net10.0;net9.0-browser` for cross-platform support

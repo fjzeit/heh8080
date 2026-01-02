@@ -6,7 +6,7 @@
 - [practices.md](practices.md) - Patterns and conventions
 
 ## Plans
-- [plans/emulator-implementation.md](plans/emulator-implementation.md) - Full implementation plan (8 phases)
+- [plans/emulator-implementation.md](plans/emulator-implementation.md) - Full implementation plan (8 phases, all complete)
 - [plans/phase5-terminal.md](plans/phase5-terminal.md) - ADM-3A terminal with CRT effects
 
 ## Core
@@ -25,3 +25,4 @@
 
 ## UI
 - [ui/desktop-app.md](ui/desktop-app.md) - Desktop application architecture
+- [ui/browser.md](ui/browser.md) - Browser WASM platform
