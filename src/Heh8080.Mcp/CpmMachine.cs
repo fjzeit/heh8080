@@ -199,6 +199,85 @@ public class CpmMachine : IDisposable
         return $"Running: {_emulator.IsRunning}, PC: {cpu.PC:X4}, SP: {cpu.SP:X4}, Halted: {cpu.Halted}";
     }
 
+    #region Debug Methods
+
+    /// <summary>
+    /// Get the CPU for direct register access.
+    /// </summary>
+    public ICpu Cpu => _emulator.Cpu;
+
+    /// <summary>
+    /// Get the emulator for advanced access.
+    /// </summary>
+    public Emulator Emulator => _emulator;
+
+    /// <summary>
+    /// Enable instruction tracing.
+    /// </summary>
+    public void EnableTrace() => _emulator.TraceEnabled = true;
+
+    /// <summary>
+    /// Disable instruction tracing.
+    /// </summary>
+    public void DisableTrace() => _emulator.TraceEnabled = false;
+
+    /// <summary>
+    /// Get trace entries.
+    /// </summary>
+    public TraceEntry[] GetTraceEntries() => _emulator.TraceBuffer.GetEntries();
+
+    /// <summary>
+    /// Clear trace buffer.
+    /// </summary>
+    public void ClearTrace() => _emulator.TraceBuffer.Clear();
+
+    /// <summary>
+    /// Set a breakpoint at the specified address.
+    /// </summary>
+    public void SetBreakpoint(ushort address) => _emulator.SetBreakpoint(address);
+
+    /// <summary>
+    /// Clear a breakpoint at the specified address.
+    /// </summary>
+    public void ClearBreakpoint(ushort address) => _emulator.ClearBreakpoint(address);
+
+    /// <summary>
+    /// Clear all breakpoints.
+    /// </summary>
+    public void ClearAllBreakpoints() => _emulator.ClearAllBreakpoints();
+
+    /// <summary>
+    /// Get all active breakpoints.
+    /// </summary>
+    public IReadOnlyCollection<ushort> GetBreakpoints() => _emulator.Breakpoints;
+
+    /// <summary>
+    /// Check if execution is stopped at a breakpoint.
+    /// </summary>
+    public bool BreakpointHit => _emulator.BreakpointHit;
+
+    /// <summary>
+    /// Get the address where breakpoint was hit.
+    /// </summary>
+    public ushort HitAddress => _emulator.HitAddress;
+
+    /// <summary>
+    /// Continue execution after hitting a breakpoint.
+    /// </summary>
+    public void Continue()
+    {
+        _emulator.ClearHit();
+        StartInterruptTimer();
+        _emulator.Start();
+    }
+
+    /// <summary>
+    /// Execute a single instruction.
+    /// </summary>
+    public int SingleStep() => _emulator.Step();
+
+    #endregion
+
     private void StartInterruptTimer()
     {
         _interruptTimer = new Timer(

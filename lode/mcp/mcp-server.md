@@ -118,6 +118,82 @@ Get information about mounted disk drives.
 disk_info() -> "A: Mounted\nB: Empty\n..."
 ```
 
+## Debug Tools
+
+### get_cpu_state
+Get full CPU state including all registers and flags.
+
+```
+get_cpu_state() -> "PC:0100 SP:FFF0 A:00 B:01 C:02 D:03 E:04 H:05 L:06 F:44 IE:1 Halted:0"
+```
+
+### step
+Execute a single instruction and return CPU state. Machine must be stopped first.
+
+```
+step() -> "PC:0102 SP:FFF0 A:3E ..."
+```
+
+### stop_machine
+Stop the running machine.
+
+```
+stop_machine() -> "Machine stopped. PC:1234 ..."
+```
+
+### continue
+Continue execution after hitting a breakpoint.
+
+```
+continue() -> "Execution resumed from 0100"
+```
+
+### enable_trace / disable_trace
+Toggle instruction tracing. When enabled, captures last 256 instructions in a ring buffer.
+
+```
+enable_trace() -> "Trace enabled."
+disable_trace() -> "Trace disabled."
+```
+
+### get_trace
+Get instruction trace buffer (last N instructions executed). Returns hex format.
+
+```
+get_trace(count: 10) ->
+  PC   OP      A  B  C  D  E  H  L  SP   F
+  0100 3E00    00 01 02 03 04 05 06 FFF0 44
+  0102 0605    00 01 02 03 04 05 06 FFF0 44
+```
+
+### clear_trace
+Clear the trace buffer.
+
+```
+clear_trace() -> "Trace buffer cleared."
+```
+
+### set_breakpoint
+Set a breakpoint at the specified address. Execution stops before the instruction.
+
+```
+set_breakpoint(address: 256) -> "Breakpoint set at 0100"
+```
+
+### clear_breakpoint
+Clear a breakpoint at the specified address.
+
+```
+clear_breakpoint(address: 256) -> "Breakpoint cleared at 0100"
+```
+
+### list_breakpoints
+List all active breakpoints.
+
+```
+list_breakpoints() -> "Breakpoints: 0100, 0200, 0300"
+```
+
 ## Implementation Details
 
 ### Key Files
@@ -185,4 +261,3 @@ rm /tmp/mcp_test
 
 - Single-user mode only (one MCP client at a time)
 - No disk file read/write through CP/M filesystem (use disk mounting or cpmtools)
-- CPU registers beyond PC/SP not exposed via ICpu interface

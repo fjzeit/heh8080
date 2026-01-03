@@ -16,11 +16,13 @@ public sealed class FileDiskImageProvider : IDiskImageProvider, IDisposable
     {
         public FileStream Stream { get; }
         public bool ReadOnly { get; }
+        public string Path { get; }
 
-        public DriveInfo(FileStream stream, bool readOnly)
+        public DriveInfo(FileStream stream, bool readOnly, string path)
         {
             Stream = stream;
             ReadOnly = readOnly;
+            Path = path;
         }
 
         public void Dispose()
@@ -46,7 +48,7 @@ public sealed class FileDiskImageProvider : IDiskImageProvider, IDisposable
         var share = readOnly ? FileShare.Read : FileShare.None;
         var stream = new FileStream(imagePath, FileMode.OpenOrCreate, access, share);
 
-        _drives[drive] = new DriveInfo(stream, readOnly);
+        _drives[drive] = new DriveInfo(stream, readOnly, imagePath);
     }
 
     public void Unmount(int drive)
@@ -121,6 +123,17 @@ public sealed class FileDiskImageProvider : IDiskImageProvider, IDisposable
     {
         var driveInfo = GetDrive(drive);
         return driveInfo?.ReadOnly ?? true;
+    }
+
+    public bool Refresh(int drive)
+    {
+        var driveInfo = GetDrive(drive);
+        if (driveInfo == null)
+            return false;
+
+        // Remount with same path and read-only setting
+        Mount(drive, driveInfo.Path, driveInfo.ReadOnly);
+        return true;
     }
 
     private DriveInfo? GetDrive(int drive)

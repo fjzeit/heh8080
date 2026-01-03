@@ -1,4 +1,6 @@
 using System.ComponentModel;
+using System.Text;
+using Heh8080.Core;
 using ModelContextProtocol.Server;
 
 namespace Heh8080.Mcp;
@@ -125,4 +127,146 @@ public class CpmTools
         }
         return string.Join("\n", lines);
     }
+
+    [McpServerTool]
+    [Description("Refresh disk to see external changes made by cpmtools. Reopens file handle.")]
+    public string RefreshDisk(
+        [Description("Drive number (0=A, 1=B, 2=C, 3=D)")] int drive)
+    {
+        if (drive < 0 || drive > 3)
+            return "Error: Drive must be 0-3";
+
+        if (!_machine.DiskProvider.IsMounted(drive))
+            return $"Error: Drive {(char)('A' + drive)}: not mounted";
+
+        if (_machine.DiskProvider.Refresh(drive))
+            return $"Drive {(char)('A' + drive)}: refreshed";
+        else
+            return $"Error: Failed to refresh drive {(char)('A' + drive)}:";
+    }
+
+    #region Debug Tools
+
+    [McpServerTool]
+    [Description("Get full CPU state including all registers and flags.")]
+    public string GetCpuState()
+    {
+        var cpu = _machine.Cpu;
+        var state = cpu.GetTraceState();
+
+        return $"PC:{state.PC:X4} SP:{state.SP:X4} " +
+               $"A:{state.A:X2} B:{state.B:X2} C:{state.C:X2} " +
+               $"D:{state.D:X2} E:{state.E:X2} H:{state.H:X2} L:{state.L:X2} " +
+               $"F:{state.Flags:X2} IE:{(cpu.InterruptsEnabled ? 1 : 0)} Halted:{(cpu.Halted ? 1 : 0)}";
+    }
+
+    [McpServerTool]
+    [Description("Get instruction trace buffer (last N instructions executed). Returns hex format.")]
+    public string GetTrace(
+        [Description("Number of entries to return (default 32, max 256)")] int count = 32)
+    {
+        count = Math.Clamp(count, 1, 256);
+        var entries = _machine.GetTraceEntries();
+
+        if (entries.Length == 0)
+            return "Trace buffer empty. Enable tracing with EnableTrace first.";
+
+        var sb = new StringBuilder();
+        sb.AppendLine("PC   OP      A  B  C  D  E  H  L  SP   F");
+
+        foreach (var e in entries.TakeLast(count))
+        {
+            sb.AppendLine($"{e.PC:X4} {e.Opcode:X2}{e.Op1:X2}{e.Op2:X2} " +
+                          $"{e.A:X2} {e.B:X2} {e.C:X2} {e.D:X2} {e.E:X2} {e.H:X2} {e.L:X2} " +
+                          $"{e.SP:X4} {e.Flags:X2}");
+        }
+
+        return sb.ToString();
+    }
+
+    [McpServerTool]
+    [Description("Enable instruction tracing.")]
+    public string EnableTrace()
+    {
+        _machine.EnableTrace();
+        return "Trace enabled. Use GetTrace to view captured instructions.";
+    }
+
+    [McpServerTool]
+    [Description("Disable instruction tracing.")]
+    public string DisableTrace()
+    {
+        _machine.DisableTrace();
+        return "Trace disabled.";
+    }
+
+    [McpServerTool]
+    [Description("Clear the trace buffer.")]
+    public string ClearTrace()
+    {
+        _machine.ClearTrace();
+        return "Trace buffer cleared.";
+    }
+
+    [McpServerTool]
+    [Description("Set a breakpoint at the specified address. Execution stops before the instruction at this address.")]
+    public string SetBreakpoint(
+        [Description("Memory address for breakpoint (0-65535)")] int address)
+    {
+        address = Math.Clamp(address, 0, 0xFFFF);
+        _machine.SetBreakpoint((ushort)address);
+        return $"Breakpoint set at {address:X4}";
+    }
+
+    [McpServerTool]
+    [Description("Clear a breakpoint at the specified address.")]
+    public string ClearBreakpoint(
+        [Description("Memory address of breakpoint to clear (0-65535)")] int address)
+    {
+        address = Math.Clamp(address, 0, 0xFFFF);
+        _machine.ClearBreakpoint((ushort)address);
+        return $"Breakpoint cleared at {address:X4}";
+    }
+
+    [McpServerTool]
+    [Description("List all active breakpoints.")]
+    public string ListBreakpoints()
+    {
+        var bps = _machine.GetBreakpoints();
+        if (bps.Count == 0)
+            return "No breakpoints set.";
+        return "Breakpoints: " + string.Join(", ", bps.OrderBy(x => x).Select(x => $"{x:X4}"));
+    }
+
+    [McpServerTool]
+    [Description("Execute a single instruction and return CPU state. Machine must be stopped first.")]
+    public string Step()
+    {
+        if (_machine.IsRunning)
+            return "Error: Machine is running. Use StopMachine first.";
+
+        _machine.SingleStep();
+        return GetCpuState();
+    }
+
+    [McpServerTool]
+    [Description("Stop the running machine.")]
+    public async Task<string> StopMachine()
+    {
+        await _machine.StopAsync();
+        return "Machine stopped. " + GetCpuState();
+    }
+
+    [McpServerTool]
+    [Description("Continue execution after hitting a breakpoint.")]
+    public string Continue()
+    {
+        if (!_machine.BreakpointHit)
+            return "Not stopped at breakpoint.";
+
+        _machine.Continue();
+        return $"Execution resumed from {_machine.HitAddress:X4}";
+    }
+
+    #endregion
 }

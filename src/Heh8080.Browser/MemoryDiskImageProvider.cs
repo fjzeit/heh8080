@@ -127,6 +127,12 @@ public sealed class MemoryDiskImageProvider : IDiskImageProvider, IDisposable
         return driveInfo?.ReadOnly ?? true;
     }
 
+    public bool Refresh(int drive)
+    {
+        // No-op for browser - data is in memory, no external file to refresh
+        return IsMounted(drive);
+    }
+
     /// <summary>
     /// Get the disk data for saving to IndexedDB.
     /// </summary>

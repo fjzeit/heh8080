@@ -36,6 +36,13 @@ public sealed class Emulator : IDisposable
     private Task? _runTask;
     private readonly object _lock = new();
 
+    // Debug infrastructure
+    private readonly TraceBuffer _traceBuffer = new();
+    private readonly HashSet<ushort> _breakpoints = new();
+    private volatile bool _traceEnabled;
+    private volatile bool _breakpointHit;
+    private ushort _hitAddress;
+
     public Emulator(CpuType cpuType = CpuType.ZilogZ80)
     {
         CpuType = cpuType;
@@ -129,15 +136,95 @@ public sealed class Emulator : IDisposable
         return cycles;
     }
 
+    #region Debug Infrastructure
+
+    /// <summary>
+    /// Enable or disable instruction tracing.
+    /// </summary>
+    public bool TraceEnabled
+    {
+        get => _traceEnabled;
+        set => _traceEnabled = value;
+    }
+
+    /// <summary>
+    /// Get the trace buffer.
+    /// </summary>
+    public TraceBuffer TraceBuffer => _traceBuffer;
+
+    /// <summary>
+    /// Get active breakpoints.
+    /// </summary>
+    public IReadOnlyCollection<ushort> Breakpoints => _breakpoints;
+
+    /// <summary>
+    /// True if execution stopped at a breakpoint.
+    /// </summary>
+    public bool BreakpointHit => _breakpointHit;
+
+    /// <summary>
+    /// Address where breakpoint was hit.
+    /// </summary>
+    public ushort HitAddress => _hitAddress;
+
+    /// <summary>
+    /// Set a breakpoint at the specified address.
+    /// </summary>
+    public void SetBreakpoint(ushort address)
+    {
+        lock (_lock) { _breakpoints.Add(address); }
+    }
+
+    /// <summary>
+    /// Clear a breakpoint at the specified address.
+    /// </summary>
+    public void ClearBreakpoint(ushort address)
+    {
+        lock (_lock) { _breakpoints.Remove(address); }
+    }
+
+    /// <summary>
+    /// Clear all breakpoints.
+    /// </summary>
+    public void ClearAllBreakpoints()
+    {
+        lock (_lock) { _breakpoints.Clear(); }
+    }
+
+    /// <summary>
+    /// Clear the breakpoint hit flag to allow resuming execution.
+    /// </summary>
+    public void ClearHit()
+    {
+        _breakpointHit = false;
+    }
+
+    #endregion
+
     private async Task RunLoopAsync(CancellationToken ct)
     {
         try
         {
-            while (!ct.IsCancellationRequested && !Cpu.Halted)
+            while (!ct.IsCancellationRequested && !Cpu.Halted && !_breakpointHit)
             {
                 // Run a batch of instructions
                 for (int i = 0; i < BatchSize && !ct.IsCancellationRequested && !Cpu.Halted; i++)
                 {
+                    // Breakpoint check (before instruction)
+                    if (_breakpoints.Count > 0 && _breakpoints.Contains(Cpu.PC))
+                    {
+                        _hitAddress = Cpu.PC;
+                        _breakpointHit = true;
+                        return;
+                    }
+
+                    // Trace capture (before instruction, if enabled)
+                    if (_traceEnabled)
+                    {
+                        var state = Cpu.GetTraceState();
+                        _traceBuffer.Add(new TraceEntry(state, Memory));
+                    }
+
                     Cpu.Step();
                     InstructionCount++;
                 }

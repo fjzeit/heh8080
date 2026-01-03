@@ -33,4 +33,10 @@ public interface ICpu
     /// </summary>
     /// <param name="vector">Interrupt vector (0-7 for RST).</param>
     void Interrupt(byte vector);
+
+    /// <summary>
+    /// Get CPU state for trace logging.
+    /// </summary>
+    /// <returns>Tuple of (A, B, C, D, E, H, L, SP, PC, Flags).</returns>
+    (byte A, byte B, byte C, byte D, byte E, byte H, byte L, ushort SP, ushort PC, byte Flags) GetTraceState();
 }

@@ -14,6 +14,7 @@ Cross-platform Intel 8080 / Zilog Z80 CPU emulator designed to run LOLOS (a CP/M
 - Responsive scaling (100%, 75%, 50%, 25%) with platform-aware defaults
 - Supports standard 8080 CPU test suites
 - MCP (Model Context Protocol) server for AI-assisted development
+- Debug tools: instruction tracing, breakpoints, single-step, register access
 
 ## Related Projects
 - **LOLOS**: https://github.com/fjzeit/lolos - CP/M 2.2 compatible OS in pure 8080 assembly

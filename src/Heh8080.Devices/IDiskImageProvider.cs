@@ -48,4 +48,11 @@ public interface IDiskImageProvider
     /// Check if the mounted disk is read-only.
     /// </summary>
     bool IsReadOnly(int drive);
+
+    /// <summary>
+    /// Refresh disk to see external changes (closes and reopens file handle).
+    /// </summary>
+    /// <param name="drive">Drive number (0-15)</param>
+    /// <returns>True if refresh succeeded</returns>
+    bool Refresh(int drive);
 }

@@ -102,6 +102,11 @@ public sealed class Cpu8080 : ICpu
         return f;
     }
 
+    public (byte A, byte B, byte C, byte D, byte E, byte H, byte L, ushort SP, ushort PC, byte Flags) GetTraceState()
+    {
+        return (A, B, C, D, E, H, L, SP, PC, GetFlags());
+    }
+
     public void SetFlags(byte f)
     {
         FlagS = (f & 0x80) != 0;
