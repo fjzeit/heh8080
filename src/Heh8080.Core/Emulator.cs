@@ -78,8 +78,9 @@ public sealed class Emulator : IDisposable
 
             _cts = new CancellationTokenSource();
             IsRunning = true;
-            // Use async RunLoop that yields periodically (required for single-threaded WASM)
-            _runTask = RunLoopAsync(_cts.Token);
+            // Must not run on the caller's sync context (UI thread); the loop's yields keep single-threaded WASM responsive
+            var ct = _cts.Token;
+            _runTask = Task.Run(() => RunLoopAsync(ct));
         }
         Started?.Invoke();
     }

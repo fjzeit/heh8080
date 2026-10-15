@@ -450,4 +450,6 @@ internal sealed class TestDiskImageProvider : IDiskImageProvider
     }
 
     public bool IsReadOnly(int drive) => false;
+
+    public bool Refresh(int drive) => IsMounted(drive);
 }
